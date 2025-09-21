@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Building2, Mail, Lock, AlertCircle } from "lucide-react"
+import {Mail, Lock, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -44,10 +44,14 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-              <Building2 className="w-7 h-7 text-white" />
+            <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
+              <img src="/Facilitaj.png"
+                  alt="Logo da Empresa"
+                  width={30}
+                  height={30}
+                  className="w-30 h-30 text-white" 
+                  />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">FACILITA</h1>
           </Link>
           <p className="text-gray-600 mt-2">Entre na sua conta</p>
         </div>

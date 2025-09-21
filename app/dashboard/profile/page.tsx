@@ -69,7 +69,12 @@ export default function ProfilePage() {
                 <Card className="border-0 shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <Building2 className="w-5 h-5 mr-2" />
+                      <img src="Facilitaj.png"
+                        alt="Logo da Empresa"
+                        width={20}
+                        height={20}
+                        className="w-16 h-16" 
+                        />
                       Informações da Empresa
                     </CardTitle>
                     <CardDescription>Dados da sua empresa cadastrada</CardDescription>

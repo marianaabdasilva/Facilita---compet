@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Building2, CheckCircle, AlertCircle, Clock } from "lucide-react"
-import { useParams } from "next/navigation"
+import {CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { useParams } from "next/navigation" 
 
 // Mock data for link validation
 const mockLinkData = {
@@ -106,11 +106,14 @@ export default function UploadLinkPage() {
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-              <Building2 className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">FACILITA</h1>
+          <div>
+            <img
+            src="/Facilitaj.png" // caminho relativo à pasta public
+            alt="Logo da empresa"
+            width={28}
+            height={48}
+            className="w-16 h-16 "
+            />
           </div>
           <p className="text-gray-600">Upload de Documentos</p>
         </div>

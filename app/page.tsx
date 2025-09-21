@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Building2, FileText, Users, Zap, Shield, Clock } from "lucide-react"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building2, FileText, Users, Zap, Shield, Clock } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -13,10 +14,15 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <Building2 className="w-7 h-7 text-blue-600" />
+              <div className="w-18 h-18 bg-white rounded-full flex items-center justify-center">
+                <Image
+                  src="/Facilitaj.png"
+                  alt="Logo"
+                  width={40}
+                  height={40}
+                  className="sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
+                />
               </div>
-              <h1 className="text-2xl font-bold text-white">FACILITA</h1>
             </div>
 
             {/* User Actions */}
@@ -35,101 +41,140 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-100">Gestão Empresarial Simplificada</Badge>
-          <h2 className="text-5xl font-bold text-gray-900 mb-6 text-balance">
-            Facilite seus processos de
-            <span className="text-blue-600"> CNPJ</span>
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto text-pretty">
-            Plataforma completa para abertura, alteração e fechamento de CNPJ. Upload de documentos, acompanhamento em
-            tempo real e gestão centralizada.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-              <Link href="/abrir-empresa">Começar Agora</Link>
-            </Button>
-            <Button size="lg" variant="outline">
-              Saiba Mais
-            </Button>
+<section className="min-h-screen flex items-center bg-blue-100">
+  <div className="container mx-auto px-8 grid grid-cols-1 md:grid-cols-2 gap-12 -mt-16 items-center">
+    
+    {/* Texto lado esquerdo */}
+    <div className="text-left">
+      <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-100">
+        Gestão Empresarial Simplificada
+      </Badge>
+
+      <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+        Facilite seus processos de
+        <span className="text-blue-600"> CNPJ</span>
+      </h2>
+
+      <p className="text-2xl text-gray-600 mb-10 max-w-2xl">
+        Plataforma completa para abertura, alteração e fechamento de CNPJ. Upload de documentos, acompanhamento em
+        tempo real e gestão centralizada.
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-6">
+        {/* Botão principal */}
+        <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg">
+          <Link href="/abrir-empresa">Começar Agora</Link>
+        </Button>
+
+        {/* Botão secundário transparente */}
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50"
+        >
+          Saiba Mais
+        </Button>
+      </div>
+    </div>
+
+    {/* Imagem lado direito */}
+    <div className="flex justify-center md:justify-end">
+      <img
+        src="/elementos.png"
+        alt="Ilustração empresarial"
+        className="max-150 w-150"
+      />
+    </div>
+
+  </div>
+</section>
+
+   {/* Features Grid */}
+<section className="min-h-screen flex flex-col justify-center bg-white py-16">
+  <div className="container mx-auto px-8">
+    <div className="text-center mb-12">
+      <h3 className="text-3xl font-bold text-gray-900 mb-4">Tudo que você precisa em um só lugar</h3>
+      <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+        Simplifique a gestão dos seus processos empresariais com nossa plataforma integrada
+      </p>
+    </div>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8 text-blue-600" />
           </div>
-        </div>
-      </section>
+          <CardTitle className="text-xl">Upload de Documentos</CardTitle>
+          <CardDescription className="text-base">
+            Envie todos os documentos necessários de forma segura e organizada
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Features Grid */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Tudo que você precisa em um só lugar</h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Simplifique a gestão dos seus processos empresariais com nossa plataforma integrada
-            </p>
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <Zap className="w-8 h-8 text-green-600" />
           </div>
+          <CardTitle className="text-xl">Processos Ágeis</CardTitle>
+          <CardDescription className="text-base">
+            Abertura, alteração e fechamento de CNPJ com máxima eficiência
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-                <CardTitle>Upload de Documentos</CardTitle>
-                <CardDescription>Envie todos os documentos necessários de forma segura e organizada</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-green-600" />
-                </div>
-                <CardTitle>Processos Ágeis</CardTitle>
-                <CardDescription>Abertura, alteração e fechamento de CNPJ com máxima eficiência</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-                <CardTitle>Gestão de Clientes</CardTitle>
-                <CardDescription>Dashboard completo para acompanhar todos os seus clientes e processos</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-orange-600" />
-                </div>
-                <CardTitle>Segurança Total</CardTitle>
-                <CardDescription>Seus dados e documentos protegidos com criptografia de ponta</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-red-600" />
-                </div>
-                <CardTitle>Acompanhamento</CardTitle>
-                <CardDescription>Monitore o status dos processos em tempo real</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
-                  <Building2 className="w-6 h-6 text-teal-600" />
-                </div>
-                <CardTitle>Multi-empresa</CardTitle>
-                <CardDescription>Gerencie múltiplas empresas em uma única plataforma</CardDescription>
-              </CardHeader>
-            </Card>
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+            <Users className="w-8 h-8 text-purple-600" />
           </div>
-        </div>
-      </section>
+          <CardTitle className="text-xl">Gestão de Clientes</CardTitle>
+          <CardDescription className="text-base">
+            Dashboard completo para acompanhar todos os seus clientes e processos
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+            <Shield className="w-8 h-8 text-orange-600" />
+          </div>
+          <CardTitle className="text-xl">Segurança Total</CardTitle>
+          <CardDescription className="text-base">
+            Seus dados e documentos protegidos com criptografia de ponta
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+            <Clock className="w-8 h-8 text-red-600" />
+          </div>
+          <CardTitle className="text-xl">Acompanhamento</CardTitle>
+          <CardDescription className="text-base">
+            Monitore o status dos processos em tempo real
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
+        <CardHeader className="items-center">
+          <div className="w-14 h-14 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+            <Building2 className="w-8 h-8 text-teal-600" />
+          </div>
+          <CardTitle className="text-xl">Multi-empresa</CardTitle>
+          <CardDescription className="text-base">
+            Gerencie múltiplas empresas em uma única plataforma
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  </div>
+</section>
+
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
@@ -150,10 +195,14 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
+                <div className="w-20 h-20 bg-white rounded-full relative flex items-center justify-center">
+                  <Image
+                    src="/Facilitaj.png"
+                    alt="Logo da Empresa"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                <h4 className="text-xl font-bold">FACILITA</h4>
               </div>
               <p className="text-gray-400">Simplificando a gestão empresarial no Brasil</p>
             </div>
@@ -186,10 +235,10 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 FACILITA. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Facilita JÁ. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

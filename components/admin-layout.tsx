@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Building2, User, LogOut, Bell, Settings, BarChart3, Users, LinkIcon } from "lucide-react"
+import {User, LogOut, Bell, Settings, BarChart3, Users, LinkIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 
@@ -45,15 +45,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/admin/dashboard" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">FACILITA</h1>
-                <span className="text-xs text-blue-600 font-medium">Painel Administrativo</span>
-              </div>
-            </Link>
+            <image
+              src="/public/Facilitaj(1)-Photoroom.png" 
+              alt="Logo da empresa"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">

@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "../contexts"
+		},
+		{
+			"path": "../hooks"
+		},
+		{
+			"path": "../lib"
+		},
+		{
+			"path": "../public"
+		},
+		{
+			"path": "../styles"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../components"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "app"
+	}
+}

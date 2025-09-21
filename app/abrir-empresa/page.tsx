@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, ArrowRight, User, FileText, Activity } from "lucide-react"
+import {ArrowRight, User, FileText, Activity } from "lucide-react"
 import Link from "next/link"
 
 export default function AbrirEmpresaPage() {
@@ -47,10 +47,14 @@ export default function AbrirEmpresaPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-blue-600" />
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                <img src="/Facilitaj.png"
+                  alt="Logo da Empresa"
+                  width={30}
+                  height={30}
+                  className="w-16 h-16 " 
+                  />
               </div>
-              <h1 className="text-xl font-bold text-white">FACILITA</h1>
             </Link>
             <Link href="/login">
               <Button variant="ghost" className="text-white hover:bg-blue-700">

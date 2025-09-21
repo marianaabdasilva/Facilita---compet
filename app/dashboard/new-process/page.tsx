@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { FileText, Building2, CheckCircle, ArrowLeft, User } from "lucide-react"
+import { FileText, CheckCircle, ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -229,7 +229,12 @@ export default function NewProcessPage() {
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Building2 className="w-5 h-5 mr-2" />
+                  <img src="/Facilitaj.png"
+                        alt="Logo da Empresa"
+                        width={30}
+                        height={30}
+                        className="w-16 h-16" 
+                   />
                   Selecionar MEI
                 </CardTitle>
                 <CardDescription>

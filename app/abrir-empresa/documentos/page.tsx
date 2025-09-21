@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Building2, Upload, FileText, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react"
+import { Upload, FileText, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function DocumentosPage() {
@@ -66,8 +66,13 @@ export default function DocumentosPage() {
       <header className="bg-blue-600 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-blue-600" />
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+              <img src="/Facilitaj.png"
+                  alt="Logo da Empresa"
+                  width={20}
+                  height={20}
+                  className="w-16 h-16 text-blue-600" 
+                />
             </div>
             <h1 className="text-xl font-bold text-white">FACILITA</h1>
           </Link>
