@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,13 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, User, Phone, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
+import { Mail, Lock, User, Phone, AlertCircle, ArrowLeft, ArrowRight, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 
 export default function CriarContaPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -139,35 +140,52 @@ export default function CriarContaPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
+                {/* Senha */}
+<div className="space-y-2 relative">
+  <Label htmlFor="password">Senha *</Label>
+  <div className="relative">
+    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+    <Input
+      id="password"
+      name="password"
+      type={showPassword ? "text" : "password"}
+      placeholder="••••••••"
+      className="pl-10 pr-10"
+      required
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+    >
+      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  </div>
+</div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
+{/* Confirmar Senha */}
+<div className="space-y-2 relative">
+  <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
+  <div className="relative">
+    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+    <Input
+      id="confirmPassword"
+      name="confirmPassword"
+      type={showConfirmPassword ? "text" : "password"}
+      placeholder="••••••••"
+      className="pl-10 pr-10"
+      required
+    />
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+    >
+      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  </div>
+</div>
+
 
                 <div className="flex justify-between pt-6">
                   <Link href="/abrir-empresa">
@@ -189,3 +207,4 @@ export default function CriarContaPage() {
     </div>
   )
 }
+
