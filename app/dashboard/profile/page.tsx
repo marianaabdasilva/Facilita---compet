@@ -95,6 +95,7 @@ export default function ProfilePage() {
                         <Label htmlFor="fantasy-name">Nome Fantasia</Label>
                         <Input id="fantasy-name" value="Silva Comércio" readOnly />
                       </div>
+          
                       <div>
                         <Label htmlFor="activity">Atividade Principal</Label>
                         <Input id="activity" value="Comércio Varejista" readOnly />
