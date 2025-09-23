@@ -11,11 +11,39 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import {  MapPin, Calendar, FileText, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
+// Função para validar CPF
+function isValidCPF(cpf: string) {
+  cpf = cpf.replace(/[^\d]+/g, "")
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false
+  let sum = 0
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i)
+  let rev = 11 - (sum % 11)
+  if (rev === 10 || rev === 11) rev = 0
+  if (rev !== parseInt(cpf.charAt(9))) return false
+  sum = 0
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i)
+  rev = 11 - (sum % 11)
+  if (rev === 10 || rev === 11) rev = 0
+  if (rev !== parseInt(cpf.charAt(10))) return false
+  return true
+}
+
+// Função para formatar CPF
+function formatCPF(value: string) {
+  value = value.replace(/\D/g, "")
+  return value
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4")
+    .slice(0, 14)
+}
+
 export default function DadosPessoaisPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
+  const [cpf, setCpf] = useState("")
 
   useEffect(() => {
     const tempData = localStorage.getItem("tempUserData")
@@ -32,8 +60,37 @@ export default function DadosPessoaisPage() {
     setIsLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    const cpfValue = formData.get("cpf") as string
+
+    if (!isValidCPF(cpfValue)) {
+      setError("CPF inválido")
+      setIsLoading(false)
+      return
+    }
+
+    const birthDateValue = formData.get("birthDate") as string
+    if (!birthDateValue) {
+      setError("Preencha a data de nascimento.")
+      setIsLoading(false)
+      return
+    }
+    const birthDate = new Date(birthDateValue)
+    if (isNaN(birthDate.getTime())) {
+      setError("Data de nascimento inválida.")
+      setIsLoading(false)
+      return
+    }
+    if (
+      birthDate < minDate ||
+      birthDate > maxDate
+    ) {
+      setError("A data de nascimento deve indicar idade entre 18 e 100 anos.")
+      setIsLoading(false)
+      return
+    }
+
     const personalData = {
-      cpf: formData.get("cpf") as string,
+      cpf: cpfValue,
       rg: formData.get("rg") as string,
       birthDate: formData.get("birthDate") as string,
       address: formData.get("address") as string,
@@ -53,6 +110,14 @@ export default function DadosPessoaisPage() {
       setIsLoading(false)
     }
   }
+
+  // Cálculo dos limites de data
+  function getDateString(date: Date) {
+    return date.toISOString().split("T")[0]
+  }
+  const today = new Date()
+  const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate())
+  const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
 
   if (!userData) {
     return <div>Carregando...</div>
@@ -108,15 +173,26 @@ export default function DadosPessoaisPage() {
                     <Label htmlFor="cpf">CPF *</Label>
                     <div className="relative">
                       <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input id="cpf" name="cpf" type="text" placeholder="000.000.000-00" className="pl-10" required />
+                      <Input
+                        id="cpf"
+                        name="cpf"
+                        type="text"
+                        placeholder="000.000.000-00"
+                        className="pl-10"
+                        required
+                        value={cpf}
+                        onChange={e => setCpf(formatCPF(e.target.value))}
+                        maxLength={14}
+                        inputMode="numeric"
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="rg">RG *</Label>
+                    <Label htmlFor="rg">RG </Label>
                     <div className="relative">
                       <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input id="rg" name="rg" type="text" placeholder="00.000.000-0" className="pl-10" required />
+                      <Input id="rg" name="rg" type="text" placeholder="00.000.000-0" className="pl-10"  />
                     </div>
                   </div>
                 </div>
@@ -125,7 +201,15 @@ export default function DadosPessoaisPage() {
                   <Label htmlFor="birthDate">Data de Nascimento *</Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input id="birthDate" name="birthDate" type="date" className="pl-10" required />
+                    <Input
+                      id="birthDate"
+                      name="birthDate"
+                      type="date"
+                      className="pl-10"
+                      required
+                      min={getDateString(minDate)}
+                      max={getDateString(maxDate)}
+                    />
                   </div>
                 </div>
 

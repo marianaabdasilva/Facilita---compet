@@ -12,10 +12,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Mail, Lock, User, Phone, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
+// Função para formatar telefone
+function formatPhone(value: string) {
+  value = value.replace(/\D/g, "")
+  if (value.length > 11) value = value.slice(0, 11)
+  if (value.length > 6) {
+    return value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, "($1) $2-$3")
+  } else if (value.length > 2) {
+    return value.replace(/^(\d{2})(\d{0,5})/, "($1) $2")
+  } else {
+    return value
+  }
+}
+
 export default function CriarContaPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [phone, setPhone] = useState("")
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,7 +40,7 @@ export default function CriarContaPage() {
     const userData = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
+      phone: phone, // usa o valor formatado do estado
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
     }
@@ -135,6 +149,10 @@ export default function CriarContaPage() {
                       placeholder="(11) 99999-9999"
                       className="pl-10"
                       required
+                      value={phone}
+                      onChange={e => setPhone(formatPhone(e.target.value))}
+                      maxLength={15}
+                      inputMode="numeric"
                     />
                   </div>
                 </div>

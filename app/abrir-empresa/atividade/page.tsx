@@ -470,17 +470,6 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição da Atividade</Label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Descreva brevemente a atividade que você irá exercer"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                  />
-                </div>
-
                 <div className="flex justify-between pt-6">
                   <Link href="/abrir-empresa/dados-pessoais">
                     <Button type="button" variant="outline">
