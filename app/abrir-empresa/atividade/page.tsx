@@ -255,41 +255,40 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-              {/* Aba de Endereço Opcional */}
-            <div className="mt-6 border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Endereço (da empresa, caso acha)
-              </h3>
+                {/* Aba de Endereço Opcional */}
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Endereço (da empresa, caso haja)
+                  </h3>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="address">Endereço</Label>
-                  <Input id="address" name="address" type="text" placeholder="Rua, número e complemento" />
-                </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Endereço</Label>
+                      <Input id="address" name="address" type="text" placeholder="Rua, número e complemento" />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="district">Bairro</Label>
-                  <Input id="district" name="district" type="text" placeholder="Digite o bairro" />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="district">Bairro</Label>
+                      <Input id="district" name="district" type="text" placeholder="Digite o bairro" />
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Cidade</Label>
-                    <Input id="city" name="city" type="text" placeholder="Digite a cidade" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Cidade</Label>
+                        <Input id="city" name="city" type="text" placeholder="Digite a cidade" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="state">Estado</Label>
+                        <Input id="state" name="state" type="text" placeholder="Ex: SP" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="cep">CEP</Label>
+                      <Input id="cep" name="cep" type="text" placeholder="Digite o CEP" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">Estado</Label>
-                    <Input id="state" name="state" type="text" placeholder="Ex: SP" />
-                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cep">CEP</Label>
-                  <Input id="cep" name="cep" type="text" placeholder="Digite o CEP" />
-                </div>
-              </div>
-            </div>
-
 
                 {/* Descrição */}
                 <div className="space-y-2">

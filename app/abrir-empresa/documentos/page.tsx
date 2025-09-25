@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Upload, FileText, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import React from "react"
 
 export default function DocumentosPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({})
 
   useEffect(() => {
     const tempData = localStorage.getItem("tempUserData")
@@ -23,31 +24,41 @@ export default function DocumentosPage() {
     setUserData(JSON.parse(tempData))
   }, [router])
 
-  const requiredDocuments = ["Cópia do RG", "Cópia do CPF", "Comprovante de Residência", "Foto 3x4 recente"]
+  const requiredDocuments = ["Cópia do RG ou CIN", "Comprovante de Residência", "Foto 3x4 recente"]
 
-  const handleFileUpload = (document: string) => {
-    // Simular upload
-    setUploadedFiles((prev) => [...prev, document])
+  const handleFileChange = (document: string, file: File | null) => {
+    setUploadedFiles((prev) => ({
+      ...prev,
+      [document]: file,
+    }))
   }
 
   const handleSubmit = async () => {
     setError("")
     setIsLoading(true)
 
-    if (uploadedFiles.length < requiredDocuments.length) {
+    // Verifica se todos os documentos obrigatórios foram enviados
+    const allUploaded = requiredDocuments.every((doc) => uploadedFiles[doc])
+    if (!allUploaded) {
       setError("Por favor, faça upload de todos os documentos obrigatórios")
       setIsLoading(false)
       return
     }
 
     try {
-      // Simular envio final dos dados
-      const finalData = { ...userData, documents: uploadedFiles }
+      // Exemplo de envio dos arquivos (ajuste conforme sua API)
+      const formData = new FormData()
+      formData.append("userData", JSON.stringify(userData))
+      requiredDocuments.forEach((doc) => {
+        if (uploadedFiles[doc]) {
+          formData.append("documents", uploadedFiles[doc] as File, doc)
+        }
+      })
 
-      // Limpar dados temporários
+      // Exemplo de requisição (ajuste a URL e método conforme necessário)
+      // await fetch("/api/upload", { method: "POST", body: formData })
+
       localStorage.removeItem("tempUserData")
-
-      // Redirecionar para página de sucesso ou dashboard
       router.push("/dashboard")
     } catch (err) {
       setError("Erro ao finalizar processo. Tente novamente.")
@@ -114,17 +125,31 @@ export default function DocumentosPage() {
                         <FileText className="w-5 h-5 text-gray-400" />
                         <span className="font-medium">{document}</span>
                       </div>
-                      {uploadedFiles.includes(document) ? (
-                        <div className="flex items-center space-x-2 text-green-600">
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="text-sm">Enviado</span>
-                        </div>
-                      ) : (
-                        <Button onClick={() => handleFileUpload(document)} variant="outline" size="sm">
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload
-                        </Button>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          id={`file-${index}`}
+                          style={{ display: "none" }}
+                          onChange={(e) =>
+                            handleFileChange(document, e.target.files ? e.target.files[0] : null)
+                          }
+                        />
+                        <label htmlFor={`file-${index}`}>
+                          <Button asChild variant="outline" size="sm">
+                            <span>
+                              <Upload className="w-4 h-4 mr-2" />
+                              {uploadedFiles[document] ? "Trocar arquivo" : "Upload"}
+                            </span>
+                          </Button>
+                        </label>
+                        {uploadedFiles[document] && (
+                          <span className="text-green-600 flex items-center text-sm">
+                            <CheckCircle className="w-5 h-5 mr-1" />
+                            Enviado
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -195,7 +220,7 @@ export default function DocumentosPage() {
                 <Button
                   onClick={handleSubmit}
                   className="bg-green-600 hover:bg-green-700"
-                  disabled={isLoading || uploadedFiles.length < requiredDocuments.length}
+                  disabled={isLoading || Object.keys(uploadedFiles).length < requiredDocuments.length}
                 >
                   {isLoading ? "Finalizando..." : "Finalizar Solicitação"}
                 </Button>
