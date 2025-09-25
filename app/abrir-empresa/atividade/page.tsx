@@ -241,7 +241,7 @@ export default function AtividadePage() {
 
                 {/* Nome Fantasia */}
                 <div className="space-y-2">
-                  <Label htmlFor="fantasyName">Nome da Empresa *</Label>
+                  <Label htmlFor="fantasyName">Nome da Empresa*</Label>
                   <div className="relative">
                     <Store className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
@@ -258,7 +258,7 @@ export default function AtividadePage() {
               {/* Aba de Endereço Opcional */}
             <div className="mt-6 border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Endereço (opcional)
+                Endereço (da empresa, caso acha)
               </h3>
 
               <div className="space-y-4">
