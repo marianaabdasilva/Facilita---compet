@@ -71,8 +71,8 @@ export default function HomePage() {
           size="lg"
           variant="outline"
           className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50"
-        >
-          Saiba Mais
+        > <Link href="/sobre">
+          Saiba Mais </Link>
         </Button>
       </div>
     </div>
