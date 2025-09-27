@@ -34,14 +34,14 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 bg-white shadow">
+      <header className="flex items-center justify-between px-4 py-0 bg-white shadow">
         {/* Logo */}
         <Image
-          src="/public/Facilitaj(1)-Photoroom.png"
+          src="/facilitaj.png"
           alt="Logo da empresa"
           width={48}
           height={48}
-          className="rounded-full"
+          className="w-29 h-29"
         />
 
         {/* User Menu */}

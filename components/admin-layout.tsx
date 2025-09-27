@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {User, LogOut, Bell, Settings, BarChart3, Users, LinkIcon } from "lucide-react"
+import { User, LogOut, Bell, Settings, BarChart3, Users, LinkIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 
@@ -42,15 +42,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-0">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <img
-              src="/facilitaj.png" 
+              src="/facilitaj.png"
               alt="Logo da empresa"
               width={48}
               height={48}
-              className="rounded-full"
+              className="w-29 h-29"
             />
 
             {/* Navigation */}
@@ -63,7 +63,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     key={item.name}
                     href={item.href}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      isActive
+                        ? "bg-blue-100 text-blue-700"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -93,9 +95,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Administrador</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="w-4 h-4 mr-2" />
-                    Perfil
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center">
+                      <User className="w-4 h-4 mr-2" />
+                      Perfil
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="w-4 h-4 mr-2" />
@@ -124,7 +128,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 key={item.name}
                 href={item.href}
                 className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  isActive
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}
               >
                 <Icon className="w-4 h-4 mr-2" />

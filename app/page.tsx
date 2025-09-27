@@ -9,18 +9,19 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-blue-600 shadow-lg">
+      <header className="bg-blue-100 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+            
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-18 h-18 bg-white rounded-full flex items-center justify-center">
+              <div className="w-28 h-28 bg-transparent rounded-full flex items-center justify-center">
                 <Image
                   src="/Facilitaj.png"
                   alt="Logo"
-                  width={40}
-                  height={40}
-                  className="sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
+                  width={112}
+                  height={112}
+                  className="w-28 h-28 object-contain"
                 />
               </div>
             </div>
@@ -28,12 +29,12 @@ export default function HomePage() {
             {/* User Actions */}
             <div className="flex items-center space-x-3">
               <Link href="/login">
-                <Button variant="ghost" className="text-white hover:bg-blue-700 hover:text-white">
+                <Button variant="ghost" className="text-blue-600 hover:bg-blue-700 hover:text-white">
                   Entrar
                 </Button>
               </Link>
               <Link href="/abrir-empresa">
-                <Button className="bg-white text-blue-600 hover:bg-blue-50">Abrir Empresa</Button>
+                <Button className="bg-blue-600 text-white hover:bg-blue-50">Abrir Empresa</Button>
               </Link>
             </div>
           </div>
