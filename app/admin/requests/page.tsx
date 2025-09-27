@@ -66,7 +66,7 @@ export default function RequestsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pendente":
-        return "bg-yellow-100 text-yellow-700"
+        return "bg-red-100 text-red-700"
       case "Link Enviado":
         return "bg-blue-100 text-blue-700"
       case "Documentos Recebidos":

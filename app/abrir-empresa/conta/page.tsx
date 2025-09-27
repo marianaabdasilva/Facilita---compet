@@ -26,11 +26,11 @@ function formatPhone(value: string) {
 
 export default function CriarContaPage() {
   const router = useRouter()
-const [error, setError] = useState("")
-const [isLoading, setIsLoading] = useState(false)
-const [phone, setPhone] = useState("")
-const [showPassword, setShowPassword] = useState(false)
-const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [phone, setPhone] = useState("")
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -41,7 +41,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const userData = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
-      phone: phone, // usa o valor formatado do estado
+      phone: phone,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
     }
@@ -71,11 +71,13 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-16 h-16 relative bg-white rounded-full flex items-center justify-center">
-              <img src="/Facilitaj.png"
-                  alt="Logo da Empresa"
-                  width={30}
-                  height={30}
-                  className="w-16 h-16 text-blue-600" />
+              <img
+                src="/Facilitaj.png"
+                alt="Logo da Empresa"
+                width={30}
+                height={30}
+                className="w-16 h-16 text-blue-600"
+              />
             </div>
           </Link>
         </div>
@@ -109,6 +111,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Nome */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome: *</Label>
                   <div className="relative">
@@ -124,6 +127,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
                   </div>
                 </div>
 
+                {/* Email */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
                   <div className="relative">
@@ -139,6 +143,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
                   </div>
                 </div>
 
+                {/* Telefone */}
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone *</Label>
                   <div className="relative">
@@ -159,52 +164,52 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
                 </div>
 
                 {/* Senha */}
-<div className="space-y-2 relative">
-  <Label htmlFor="password">Senha *</Label>
-  <div className="relative">
-    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-    <Input
-      id="password"
-      name="password"
-      type={showPassword ? "text" : "password"}
-      placeholder="••••••••"
-      className="pl-10 pr-10"
-      required
-    />
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
-    >
-      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  </div>
-</div>
+                <div className="space-y-2 relative">
+                  <Label htmlFor="password">Senha *</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-{/* Confirmar Senha */}
-<div className="space-y-2 relative">
-  <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
-  <div className="relative">
-    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-    <Input
-      id="confirmPassword"
-      name="confirmPassword"
-      type={showConfirmPassword ? "text" : "password"}
-      placeholder="••••••••"
-      className="pl-10 pr-10"
-      required
-    />
-    <button
-      type="button"
-      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
-    >
-      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  </div>
-</div>
+                {/* Confirmar Senha */}
+                <div className="space-y-2 relative">
+                  <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-
+                {/* Botões */}
                 <div className="flex justify-between pt-6">
                   <Link href="/abrir-empresa">
                     <Button type="button" variant="outline">
@@ -225,4 +230,3 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     </div>
   )
 }
-

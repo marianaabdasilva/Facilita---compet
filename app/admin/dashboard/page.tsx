@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       case "Link Enviado":
         return "bg-blue-100 text-blue-700"
       case "Aguardando Link":
-        return "bg-yellow-100 text-yellow-700"
+        return "bg-orange-100 text-orange-700"
       default:
         return "bg-gray-100 text-gray-700"
     }
@@ -215,11 +215,11 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Aguardando Link</span>
-                    <span className="text-lg font-bold text-yellow-600">{stats.pendingRequests}</span>
+                    <span className="text-lg font-bold text-red-600">{stats.pendingRequests}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Em Andamento</span>
-                    <span className="text-lg font-bold text-blue-600">{stats.activeProcesses}</span>
+                    <span className="text-lg font-bold text-orange-600">{stats.activeProcesses}</span>
                   </div>
                 </CardContent>
               </Card>

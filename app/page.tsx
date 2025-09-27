@@ -10,31 +10,30 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <header className="bg-blue-100 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-1">
           <div className="flex items-center justify-between">
-            
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-28 h-28 bg-transparent rounded-full flex items-center justify-center">
-                <Image
-                  src="/Facilitaj.png"
-                  alt="Logo"
-                  width={112}
-                  height={112}
-                  className="w-28 h-28 object-contain"
-                />
-              </div>
+                        <div className="w-32 h-32 bg-transparent rounded-full flex items-center justify-center">
+                          <Image
+                            src="/Facilitaj.png"
+                            alt="Logo"
+                            width={128}
+                            height={128}
+                            className="object-contain"
+                          />
+                        </div>
             </div>
 
             {/* User Actions */}
             <div className="flex items-center space-x-3">
               <Link href="/login">
-                <Button variant="ghost" className="text-blue-600 hover:bg-blue-700 hover:text-white">
+                <Button variant="ghost" className="text-blue-600 hover:bg-transparent hover:text-white">
                   Entrar
                 </Button>
               </Link>
               <Link href="/abrir-empresa">
-                <Button className="bg-blue-600 text-white hover:bg-blue-50">Abrir Empresa</Button>
+                <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">Abrir Empresa</Button>
               </Link>
             </div>
           </div>
@@ -71,7 +70,7 @@ export default function HomePage() {
         <Button
           size="lg"
           variant="outline"
-          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50"
+          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:text-white hover:bg-blue-100"
         > <Link href="/sobre">
           Saiba Mais </Link>
         </Button>

@@ -209,14 +209,14 @@ export default function AtividadePage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cnae">
-                        CNAE *{" "}
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="cnae">CNAE *</Label>
                         {filteredCnaes.length > 0 && (
                           <span className="text-sm text-gray-500">
                             ({filteredCnaes.length} encontrados)
                           </span>
                         )}
-                      </Label>
+                      </div>
                       <Select value={selectedCnae} onValueChange={setSelectedCnae}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o código CNAE" />
@@ -255,79 +255,69 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-<<<<<<< HEAD
-{/* Aba de Endereço Opcional */}
-<div className="mt-6 border-t pt-6">
-  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-    Endereço (opcional)
-  </h3>
-=======
-              {/* Aba de Endereço Opcional */}
-            <div className="mt-6 border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Endereço (da empresa, caso acha)
-              </h3>
->>>>>>> b236963 (message commit)
+                {/* Endereço (opcional) */}
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Endereço (da empresa, caso haja)
+                  </h3>
 
-  <div className="space-y-4">
-    <div className="space-y-2">
-      <Label htmlFor="address">Endereço</Label>
-      <Input id="address" name="address" type="text" placeholder="Rua, número e complemento" />
-    </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Endereço</Label>
+                      <Input id="address" name="address" type="text" placeholder="Rua, número e complemento" />
+                    </div>
 
-    <div className="space-y-2">
-      <Label htmlFor="district">Bairro</Label>
-      <Input id="district" name="district" type="text" placeholder="Digite o bairro" />
-    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="district">Bairro</Label>
+                      <Input id="district" name="district" type="text" placeholder="Digite o bairro" />
+                    </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="city">Cidade</Label>
-        <Input id="city" name="city" type="text" placeholder="Digite a cidade" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="state">Estado</Label>
-        <Input id="state" name="state" type="text" placeholder="Ex: SP" />
-      </div>
-    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Cidade</Label>
+                        <Input id="city" name="city" type="text" placeholder="Digite a cidade" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="state">Estado</Label>
+                        <Input id="state" name="state" type="text" placeholder="Ex: SP" />
+                      </div>
+                    </div>
 
-    <div className="space-y-2">
-      <Label htmlFor="cep">CEP</Label>
-      <Input id="cep" name="cep" type="text" placeholder="Digite o CEP" />
-    </div>
-  </div>
-</div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cep">CEP</Label>
+                      <Input id="cep" name="cep" type="text" placeholder="Digite o CEP" />
+                    </div>
+                  </div>
+                </div>
 
-{/* Descrição */}
-<div className="space-y-2">
-  <Label htmlFor="description">Descrição da Atividade</Label>
-  <textarea
-    id="description"
-    name="description"
-    placeholder="Descreva brevemente a atividade que você irá exercer"
-    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    rows={3}
-  />
-</div>
+                {/* Descrição */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição da Atividade</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Descreva brevemente a atividade que você irá exercer"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
 
-{/* Botões */}
-<div className="flex justify-between pt-6">
-  <Link href="/abrir-empresa/dados-pessoais">
-    <Button type="button" variant="outline">
-      <ArrowLeft className="w-4 h-4 mr-2" />
-      Voltar
-    </Button>
-  </Link>
-  <Button
-    type="submit"
-    className="bg-blue-600 hover:bg-blue-700"
-    disabled={isLoading}
-  >
-    {isLoading ? "Salvando..." : "Próxima Etapa"}
-    <ArrowRight className="w-4 h-4 ml-2" />
-  </Button>
-</div>
-
+                {/* Botões */}
+                <div className="flex justify-between pt-6">
+                  <Link href="/abrir-empresa/dados-pessoais">
+                    <Button type="button" variant="outline">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Voltar
+                    </Button>
+                  </Link>
+                  <Button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Salvando..." : "Próxima Etapa"}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               </form>
             </CardContent>

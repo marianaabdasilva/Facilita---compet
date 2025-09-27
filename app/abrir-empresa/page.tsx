@@ -57,7 +57,7 @@ export default function AbrirEmpresaPage() {
               </div>
             </Link>
             <Link href="/login">
-              <Button variant="ghost" className="text-white hover:bg-blue-700">
+              <Button variant="ghost" className="text-white hover:text-blue-100 hover:bg-blue-600">
                 Já tenho conta
               </Button>
             </Link>

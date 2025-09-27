@@ -268,7 +268,7 @@ export default function GenerateLinksPage() {
                 <CardTitle className="text-lg">Total Gerados</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-gray-600">{generatedLinks.length}</div>
+                <div className="text-3xl font-bold text-green-600">{generatedLinks.length}</div>
               </CardContent>
             </Card>
 
@@ -277,7 +277,7 @@ export default function GenerateLinksPage() {
                 <CardTitle className="text-lg">Taxa de Uso</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-600">
+                <div className="text-3xl font-bold text-blue-600">
                   {Math.round((generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100)}%
                 </div>
               </CardContent>
