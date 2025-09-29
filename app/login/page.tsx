@@ -31,7 +31,7 @@ export default function LoginPage() {
       if (user.role === "admin") {
         router.push("/admin/dashboard")
       } else {
-        router.push("/dashboard")
+        router.push("/cliente")
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login")
