@@ -1,110 +1,168 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Store, AlertCircle, ArrowLeft, ArrowRight, Search } from "lucide-react"
-import Link from "next/link"
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+// Se quiser usar react-select (ou similar) para multiselect
+import Select from "react-select";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, ArrowLeft, ArrowRight, Search } from "lucide-react";
+import Link from "next/link";
+
+interface CnaeOption {
+  value: string; // por ex: “4724-5/00”
+  label: string; // por ex: “4724-5/00 — Abatedor(A) De Aves Com Comercialização …”
+  id_cnae: number;
+}
 
 export default function AtividadePage() {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [userData, setUserData] = useState<any>(null)
-  const [selectedCnpjType, setSelectedCnpjType] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedCnae, setSelectedCnae] = useState("")
-  const [cnaeSearch, setCnaeSearch] = useState("")
+  const router = useRouter();
 
-  const cnpjTypes = [
-    { value: "mei", label: "MEI - Microempreendedor Individual" },
-    { value: "me", label: "ME - Microempresa" },
-    { value: "epp", label: "EPP - Empresa de Pequeno Porte" },
-  ]
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const categories = [
-    { value: "comercio", label: "Comércio" },
-    { value: "servicos", label: "Serviços" },
-    { value: "industria", label: "Indústria" },
-    { value: "agropecuaria", label: "Agropecuária" },
-  ]
+  const [userData, setUserData] = useState<any>(null);
 
-  const cnaes = {
-    comercio: [{ value: "4711-3/02", label: "4711-3/02 - Comércio varejista de mercadorias em geral" }],
-    servicos: [{ value: "9602-5/01", label: "9602-5/01 - Cabeleireiros, manicure e pedicure" }],
-    industria: [{ value: "1091-1/01", label: "1091-1/01 - Fabricação de produtos de padaria" }],
-    agropecuaria: [{ value: "0161-0/01", label: "0161-0/01 - Atividades de apoio à agricultura" }],
-  }
+  // para guardar opções de CNAE vindas da API
+  const [allCnaes, setAllCnaes] = useState<CnaeOption[]>([]);
+  // estado para filtro de busca de texto
+  const [cnaeSearch, setCnaeSearch] = useState("");
+  // seleção múltipla de CNAEs
+  const [selectedCnaes, setSelectedCnaes] = useState<CnaeOption[]>([]);
 
-  const filteredCnaes = useMemo(() => {
-    if (!selectedCategory) return []
-    const categoryOptions = cnaes[selectedCategory as keyof typeof cnaes] || []
-    if (!cnaeSearch.trim()) return categoryOptions
-    return categoryOptions.filter(
-      (cnae) =>
-        cnae.label.toLowerCase().includes(cnaeSearch.toLowerCase()) ||
-        cnae.value.includes(cnaeSearch),
-    )
-  }, [selectedCategory, cnaeSearch])
+  // estados de endereço via CEP
+  const [cep, setCep] = useState("");
+  const [address, setAddress] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
+  const [stateUf, setStateUf] = useState("");
+
+  // Carregar dados temporários do usuário (se houver)
+  useEffect(() => {
+    const tempData = localStorage.getItem("tempUserData");
+    if (!tempData) {
+      router.push("/abrir-empresa/conta");
+      return;
+    }
+    setUserData(JSON.parse(tempData));
+  }, [router]);
+
+  // Função para buscar todos os CNAEs da API
+  const fetchCnaes = async () => {
+    try {
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/cnae"); 
+      // ou diretamente: “https://projeto-back-ten.vercel.app/cnae” dependendo da configuração de CORS / proxy
+      const data: Array<{ id_cnae: number; nome: string; numero: string }> =
+        resp.data;
+      // transformar em CnaeOption
+      const opts: CnaeOption[] = data.map((c) => ({
+        value: c.numero,
+        label: `${c.numero} — ${c.nome}`,
+        id_cnae: c.id_cnae,
+      }));
+      setAllCnaes(opts);
+    } catch (err) {
+      console.error("Erro ao buscar CNAEs:", err);
+    }
+  };
 
   useEffect(() => {
-    const tempData = localStorage.getItem("tempUserData")
-    if (!tempData) {
-      router.push("/abrir-empresa/conta")
-      return
+    fetchCnaes();
+  }, []);
+
+  // Função para buscar via CEP (ex: usar ViaCEP ou outra API)
+  const fetchAddressByCep = async (cepParam: string) => {
+    // limpar formatações, manter apenas dígitos
+    const digits = cepParam.replace(/\D/g, "");
+    if (digits.length !== 8) {
+      return;
     }
-    setUserData(JSON.parse(tempData))
-  }, [router])
+    try {
+      const resp = await axios.get(`https://viacep.com.br/ws/${digits}/json/`);
+      if (resp.data) {
+        const d = resp.data;
+        setAddress(d.logradouro || "");
+        setDistrict(d.bairro || "");
+        setCity(d.localidade || "");
+        setStateUf(d.uf || "");
+      }
+    } catch (err) {
+      console.error("Erro ao buscar CEP:", err);
+    }
+  };
+
+  // sempre que cep mudar (após digitar), tenta buscar endereço
+  useEffect(() => {
+    if (cep.replace(/\D/g, "").length === 8) {
+      fetchAddressByCep(cep);
+    }
+  }, [cep]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget)
+    // validações mínimas
+    if (selectedCnaes.length === 0) {
+      setError("Por favor, selecione pelo menos uma atividade (CNAE).");
+      setIsLoading(false);
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
     const activityData = {
-      cnpjType: selectedCnpjType,
-      category: selectedCategory,
-      cnae: selectedCnae,
+      cnaes: selectedCnaes.map((c) => ({
+        id_cnae: c.id_cnae,
+        numero: c.value,
+        nome: c.label,
+      })),
       fantasyName: formData.get("fantasyName") as string,
       description: formData.get("description") as string,
-      address: formData.get("address") || "",
-      district: formData.get("district") || "",
-      city: formData.get("city") || "",
-      state: formData.get("state") || "",
-      cep: formData.get("cep") || "",
-    }
-
-    if (!selectedCnpjType || !selectedCategory || !selectedCnae) {
-      setError("Por favor, preencha todos os campos obrigatórios")
-      setIsLoading(false)
-      return
-    }
+      cep,
+      address,
+      district,
+      city,
+      state: stateUf,
+    };
 
     try {
-      const combinedData = { ...userData, ...activityData }
-      localStorage.setItem("tempUserData", JSON.stringify(combinedData))
-      router.push("/abrir-empresa/documentos")
+      const combinedData = { ...userData, ...activityData };
+      localStorage.setItem("tempUserData", JSON.stringify(combinedData));
+      router.push("/abrir-empresa/documentos");
     } catch (err) {
-      setError("Erro ao salvar dados. Tente novamente.")
+      console.error(err);
+      setError("Erro ao salvar dados. Tente novamente.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (!userData) {
-    return <div>Carregando...</div>
+    return <div>Carregando...</div>;
   }
+
+  // filtra opções de CNAE conforme texto digitado
+  const filteredCnaes = allCnaes.filter((opt) => {
+    const lower = opt.label.toLowerCase();
+    return (
+      lower.includes(cnaeSearch.toLowerCase()) || opt.value.includes(cnaeSearch)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
       <header className="bg-blue-600 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
@@ -121,7 +179,6 @@ export default function AtividadePage() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          {/* Progress */}
           <div className="mb-8">
             <div className="flex items-center text-sm text-gray-600 mb-4">
               <span className="text-blue-600 font-medium">Etapa 3 de 4</span>
@@ -129,7 +186,10 @@ export default function AtividadePage() {
               <span>Atividade</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: "75%" }} />
+              <div
+                className="bg-blue-600 h-2 rounded-full"
+                style={{ width: "75%" }}
+              />
             </div>
           </div>
 
@@ -137,7 +197,7 @@ export default function AtividadePage() {
             <CardHeader>
               <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
               <CardDescription>
-                Defina o tipo de CNPJ, categoria e atividade que você irá exercer
+                Defina as atividades (CNAEs) que você irá exercer
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -149,143 +209,106 @@ export default function AtividadePage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Tipo de CNPJ */}
-                <div className="space-y-2">
-                  <Label htmlFor="cnpjType">Tipo de CNPJ *</Label>
-                  <Select value={selectedCnpjType} onValueChange={setSelectedCnpjType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de CNPJ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cnpjTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* CNAEs (multiselect) */}
 
-                {/* Categoria */}
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria *</Label>
+                  <Label htmlFor="cnaes">Atividades (CNAEs) *</Label>
                   <Select
-                    value={selectedCategory}
-                    onValueChange={(value) => {
-                      setSelectedCategory(value)
-                      setSelectedCnae("")
-                      setCnaeSearch("")
+                    isMulti
+                    options={filteredCnaes}
+                    value={selectedCnaes}
+                    onChange={(sel) => {
+                      // sel pode ser null ou array
+                      if (Array.isArray(sel)) {
+                        setSelectedCnaes(sel);
+                      } else if (sel) {
+                        setSelectedCnaes([sel]);
+                      } else {
+                        setSelectedCnaes([]);
+                      }
                     }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria da atividade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    className="z-50"
+                    placeholder="Selecione uma ou mais atividades"
+                  />
                 </div>
-
-                {/* CNAE */}
-                {selectedCategory && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cnaeSearch">Pesquisar CNAE</Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="cnaeSearch"
-                          type="text"
-                          placeholder="Digite para pesquisar atividades..."
-                          className="pl-10"
-                          value={cnaeSearch}
-                          onChange={(e) => setCnaeSearch(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="cnae">CNAE *</Label>
-                        {filteredCnaes.length > 0 && (
-                          <span className="text-sm text-gray-500">
-                            ({filteredCnaes.length} encontrados)
-                          </span>
-                        )}
-                      </div>
-                      <Select value={selectedCnae} onValueChange={setSelectedCnae}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o código CNAE" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          {filteredCnaes.length > 0 ? (
-                            filteredCnaes.map((cnae) => (
-                              <SelectItem key={cnae.value} value={cnae.value}>
-                                {cnae.label}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <div className="px-2 py-1 text-sm text-gray-500">
-                              {cnaeSearch ? "Nenhum CNAE encontrado" : "Digite para pesquisar"}
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
 
                 {/* Nome Fantasia */}
                 <div className="space-y-2">
-                  <Label htmlFor="fantasyName">Nome da Empresa*</Label>
-                  <div className="relative">
-                    <Store className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Label htmlFor="fantasyName">Nome da Empresa *</Label>
+                  <Input
+                    id="fantasyName"
+                    name="fantasyName"
+                    type="text"
+                    placeholder="Nome da sua empresa"
+                    required
+                  />
+                </div>
+
+                {/* Endereço via CEP */}
+                <div className="mt-6 border-t pt-6 space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Endereço da Empresa (auto preenchido via CEP)
+                  </h3>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cep">CEP</Label>
                     <Input
-                      id="fantasyName"
-                      name="fantasyName"
+                      id="cep"
+                      name="cep"
                       type="text"
-                      placeholder="Nome da sua empresa"
-                      className="pl-10"
+                      placeholder="Digite o CEP"
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
                       required
                     />
                   </div>
-                </div>
 
-                {/* Endereço (opcional) */}
-                <div className="mt-6 border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Endereço (da empresa, caso haja)
-                  </h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Logradouro</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      type="text"
+                      placeholder="Rua, número, complemento"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="district">Bairro</Label>
+                    <Input
+                      id="district"
+                      name="district"
+                      type="text"
+                      placeholder="Bairro"
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="address">Endereço</Label>
-                      <Input id="address" name="address" type="text" placeholder="Rua, número e complemento" />
+                      <Label htmlFor="city">Cidade</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        type="text"
+                        placeholder="Cidade"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="district">Bairro</Label>
-                      <Input id="district" name="district" type="text" placeholder="Digite o bairro" />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">Cidade</Label>
-                        <Input id="city" name="city" type="text" placeholder="Digite a cidade" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">Estado</Label>
-                        <Input id="state" name="state" type="text" placeholder="Ex: SP" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cep">CEP</Label>
-                      <Input id="cep" name="cep" type="text" placeholder="Digite o CEP" />
+                      <Label htmlFor="state">Estado (UF)</Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        type="text"
+                        placeholder="SP, RJ, etc."
+                        value={stateUf}
+                        onChange={(e) => setStateUf(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -325,5 +348,5 @@ export default function AtividadePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
