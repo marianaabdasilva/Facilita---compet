@@ -85,7 +85,7 @@ export default function DocumentosPage() {
                   className="w-16 h-16 text-blue-600" 
                 />
             </div>
-            <h1 className="text-xl font-bold text-white">FACILITA</h1>
+            
           </Link>
         </div>
       </header>
