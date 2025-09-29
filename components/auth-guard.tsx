@@ -6,7 +6,7 @@ import { useEffect, type ReactNode } from "react"
 
 interface AuthGuardProps {
   children: ReactNode
-  requiredRole?: "client" | "admin"
+  requiredRole?: "client" | "employee" | "admin"
   fallback?: ReactNode
 }
 

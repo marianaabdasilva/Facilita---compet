@@ -36,12 +36,10 @@ export default function LoginPage() {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       if (user.role === "admin") {
         router.push("/admin/dashboard");
+      } else if (user.role === "employee") {
+        router.push("/employee/dashboard")
       } else {
-<<<<<<< HEAD
-        router.push("/cliente")
-=======
         router.push("/dashboard");
->>>>>>> 2ebd4dc7cc799e1522470b4517024343a4183476
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login");
@@ -112,32 +110,20 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Link
-                  href="#"
-                  className="text-sm text-blue-600 hover:underline"
-                >
+                <Link href="#" className="text-sm text-blue-600 hover:underline">
                   Esqueceu a senha?
                 </Link>
               </div>
-              <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
 
               <div className="text-xs text-gray-500 text-center mt-4">
-                <p>
-                  Demo: joao@empresa.com (cliente) | admin@facilita.com (admin)
-                </p>
+                <p>Demo: joao@empresa.com (cliente) | carlos@facilita.com (funcionário) | admin@facilita.com (admin)</p>
                 <p className="mt-2">
                   Não tem conta?{" "}
-                  <Link
-                    href="/abrir-empresa"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Abrir Empresa
+                  <Link href="/cadastro" className="text-blue-600 hover:underline">
+                    Criar Conta
                   </Link>
                 </p>
               </div>
@@ -152,5 +138,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

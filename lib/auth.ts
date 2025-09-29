@@ -3,12 +3,13 @@ export interface User {
   id: string
   name: string
   email: string
-  role: "client" | "admin"
+  role: "client" | "employee" | "admin"
   company?: {
     id: string
     name: string
     cnpj: string
   }
+  department?: string
 }
 
 export interface AuthState {
@@ -35,6 +36,13 @@ const mockUsers: User[] = [
     name: "Maria Admin",
     email: "admin@facilita.com",
     role: "admin",
+  },
+  {
+    id: "3",
+    name: "Carlos Funcionário",
+    email: "carlos@facilita.com",
+    role: "employee",
+    department: "Atendimento",
   },
 ]
 

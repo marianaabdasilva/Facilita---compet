@@ -32,7 +32,7 @@ export default function HomePage() {
                   Entrar
                 </Button>
               </Link>
-              <Link href="/abrir-empresa">
+              <Link href="/cadastro">
                 <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">Abrir Empresa</Button>
               </Link>
             </div>

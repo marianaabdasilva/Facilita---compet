@@ -13,15 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, Bell, Settings, BarChart3, Users, LinkIcon } from "lucide-react"
+import { Building2, User, LogOut, Bell, Settings, Users, FileText, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 
-interface AdminLayoutProps {
+interface EmployeeLayoutProps {
   children: React.ReactNode
 }
 
-export function AdminLayout({ children }: AdminLayoutProps) {
+export function EmployeeLayout({ children }: EmployeeLayoutProps) {
   const { user, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -32,26 +32,27 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   const navigation = [
-    { name: "Dashboard", href: "/admin/dashboard", icon: BarChart3 },
-    { name: "Solicitações", href: "/admin/requests", icon: Bell },
-    { name: "Clientes", href: "/admin/clients", icon: Users },
-    { name: "Gerar Links", href: "/admin/generate-links", icon: LinkIcon },
+    { name: "Dashboard", href: "/employee/dashboard", icon: BarChart3 },
+    { name: "Clientes", href: "/employee/clients", icon: Users },
+    { name: "Processos", href: "/employee/processes", icon: FileText },
   ]
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-0">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <img
-              src="/facilitaj.png"
-              alt="Logo da empresa"
-              width={48}
-              height={48}
-              className="w-29 h-29"
-            />
+            <Link href="/employee/dashboard" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">FACILITA</h1>
+                <span className="text-xs text-green-600 font-medium">Painel do Funcionário</span>
+              </div>
+            </Link>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
@@ -63,9 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     key={item.name}
                     href={item.href}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      isActive ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -85,18 +84,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        {user?.name?.charAt(0) || "A"}
+                      <AvatarFallback className="bg-green-100 text-green-600">
+                        {user?.name?.charAt(0) || "F"}
                       </AvatarFallback>
                     </Avatar>
                     <span className="hidden md:block">{user?.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Administrador</DropdownMenuLabel>
+                  <DropdownMenuLabel>Funcionário</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/admin/profile" className="cursor-pointer">
+                    <Link href="/employee/profile" className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Perfil
                     </Link>
@@ -128,7 +127,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 key={item.name}
                 href={item.href}
                 className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  isActive ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  isActive ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}
               >
                 <Icon className="w-4 h-4 mr-2" />
