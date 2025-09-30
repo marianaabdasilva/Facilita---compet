@@ -46,7 +46,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <img
-              src="/facilitaj.png"
+              src="/Facilitaj.png"
               alt="Logo da empresa"
               width={48}
               height={48}
