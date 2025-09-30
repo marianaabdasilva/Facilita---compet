@@ -33,7 +33,7 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/cadastro">
-                <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">Abrir Empresa</Button>
+                <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">Cadastro</Button>
               </Link>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function HomePage() {
       <div className="flex flex-col sm:flex-row gap-6">
         {/* Botão principal */}
         <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg">
-          <Link href="/abrir-empresa">Começar Agora</Link>
+          <Link href="/cadastro">Começar Agora</Link>
         </Button>
 
         {/* Botão secundário transparente */}
