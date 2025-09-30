@@ -73,7 +73,7 @@ export default function GenerateLinksPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    // You could add a toast notification here
+    // Você pode adicionar um toast aqui se quiser
   }
 
   const getStatusColor = (status: string) => {
@@ -99,6 +99,55 @@ export default function GenerateLinksPage() {
             <p className="text-gray-600 mt-1">Crie links personalizados para upload de documentos</p>
           </div>
 
+          {/* Statistics */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Suas Estatísticas</h2>
+            <div className="grid md:grid-cols-4 gap-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Links Ativos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">
+                    {generatedLinks.filter((l) => l.status === "Ativo").length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Links Usados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {generatedLinks.filter((l) => l.status === "Usado").length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Total Gerados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">{generatedLinks.length}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Taxa de Uso</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {Math.round((generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100)}%
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Form + List */}
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Link Generation Form */}
             <div className="lg:col-span-1">
@@ -238,53 +287,9 @@ export default function GenerateLinksPage() {
               </Card>
             </div>
           </div>
-
-          {/* Statistics */}
-          <div className="grid md:grid-cols-4 gap-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Links Ativos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">
-                  {generatedLinks.filter((l) => l.status === "Ativo").length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Links Usados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">
-                  {generatedLinks.filter((l) => l.status === "Usado").length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Total Gerados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">{generatedLinks.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Taxa de Uso</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">
-                  {Math.round((generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100)}%
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </AdminLayout>
     </AuthGuard>
   )
 }
+

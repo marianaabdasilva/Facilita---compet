@@ -104,11 +104,11 @@ export default function ProcessosPage() {
       case "Concluído":
         return "bg-green-100 text-green-700"
       case "Em andamento":
-        return "bg-blue-100 text-blue-700"
-      case "Pendente Aprovação":
-        return "bg-yellow-100 text-yellow-700"
-      case "Documentos Pendentes":
         return "bg-orange-100 text-orange-700"
+      case "Pendente Aprovação":
+        return "bg-red-100 text-red-700"
+      case "Documentos Pendentes":
+        return "bg-red-100 text-red-700"
       default:
         return "bg-gray-100 text-gray-700"
     }
@@ -134,7 +134,7 @@ export default function ProcessosPage() {
       case "Abertura de CNPJ":
         return "bg-blue-50 text-blue-700 border-blue-200"
       case "Alteração Contratual":
-        return "bg-purple-50 text-purple-700 border-purple-200"
+        return "bg-orange-50 text-orange-700 border-orange-200"
       case "Fechamento de CNPJ":
         return "bg-red-50 text-red-700 border-red-200"
       case "Alteração de Atividade":
@@ -187,7 +187,7 @@ export default function ProcessosPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Total de Processos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
+                <div className="text-2xl font-bold text-blue-600">{statusCounts.total}</div>
                 <p className="text-xs text-gray-500 mt-1">Todos os processos</p>
               </CardContent>
             </Card>
@@ -197,7 +197,7 @@ export default function ProcessosPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Em Andamento</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{statusCounts.emAndamento}</div>
+                <div className="text-2xl font-bold text-orange-600">{statusCounts.emAndamento}</div>
                 <p className="text-xs text-gray-500 mt-1">Processos ativos</p>
               </CardContent>
             </Card>
@@ -207,7 +207,7 @@ export default function ProcessosPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">Pendentes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{statusCounts.pendente}</div>
+                <div className="text-2xl font-bold text-red-600">{statusCounts.pendente}</div>
                 <p className="text-xs text-gray-500 mt-1">Aguardando ação</p>
               </CardContent>
             </Card>

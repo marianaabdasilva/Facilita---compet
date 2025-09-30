@@ -114,7 +114,7 @@ export default function ClientsPage() {
       case "inativo":
         return "bg-red-100 text-red-700 border-red-200"
       case "transferido":
-        return "bg-blue-100 text-blue-700 border-blue-200"
+        return "bg-orange-100 text-orange-700 border-orange-200"
       default:
         return "bg-gray-100 text-gray-700 border-gray-200"
     }
@@ -162,51 +162,51 @@ export default function ClientsPage() {
 
           {/* Dashboard Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+            <Card className="border-0 shadow-lg bg-white from-blue-50 to-blue-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-700">Total de Clientes</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-700">Total de Clientes</CardTitle>
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-900">{totalClients}</div>
-                <p className="text-xs text-blue-600 mt-1">Clientes cadastrados</p>
+                <div className="text-2xl font-bold text-blue-600">{totalClients}</div>
+                <p className="text-xs text-gray-600 mt-1">Clientes cadastrados</p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+            <Card className="border-0 shadow-lg bg-white from-green-50 to-green-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-green-700">Clientes Ativos</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-700">Clientes Ativos</CardTitle>
                 <UserCheck className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-900">{activeClients}</div>
-                <p className="text-xs text-green-600 mt-1">
+                <div className="text-2xl font-bold text-green-600">{activeClients}</div>
+                <p className="text-xs text-gray-600 mt-1">
                   {((activeClients / totalClients) * 100).toFixed(1)}% do total
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100">
+            <Card className="border-0 shadow-lg bg-white from-red-50 to-red-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-red-700">Clientes Inativos</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-700">Clientes Inativos</CardTitle>
                 <UserX className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-900">{inactiveClients}</div>
-                <p className="text-xs text-red-600 mt-1">
+                <div className="text-2xl font-bold text-red-600">{inactiveClients}</div>
+                <p className="text-xs text-gray-600 mt-1">
                   {((inactiveClients / totalClients) * 100).toFixed(1)}% do total
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+            <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-purple-700">Transferidos</CardTitle>
-                <ArrowRightLeft className="h-4 w-4 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-gray-700">Transferidos</CardTitle>
+                <ArrowRightLeft className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-900">{transferredClients}</div>
-                <p className="text-xs text-purple-600 mt-1">
+                <div className="text-2xl font-bold text-orange-600">{transferredClients}</div>
+                <p className="text-xs text-gray-600 mt-1">
                   {((transferredClients / totalClients) * 100).toFixed(1)}% do total
                 </p>
               </CardContent>
