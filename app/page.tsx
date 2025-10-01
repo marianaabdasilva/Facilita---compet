@@ -219,11 +219,15 @@ export default function HomePage() {
               <h5 className="font-semibold mb-4">Suporte</h5>
               <ul className="space-y-2 text-gray-400">
                 <li>Central de Ajuda</li>
-                <li>Contato</li>
-                <li>FAQ</li>
-                <li>Documentação</li>
-              </ul>
-            </div>
+                <li>
+      <Link href="/contato" className="hover:text-white">
+        Contato
+      </Link>
+    </li>
+    <li>FAQ</li>
+    <li>Documentação</li>
+  </ul>
+</div>
             <div>
               <h5 className="font-semibold mb-4">Empresa</h5>
               <ul className="space-y-2 text-gray-400">
