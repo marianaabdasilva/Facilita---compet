@@ -32,9 +32,7 @@ export default function HomePage() {
                   Entrar
                 </Button>
               </Link>
-              <Link href="/cadastro">
-                <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">Cadastro</Button>
-              </Link>
+
             </div>
           </div>
         </div>
@@ -62,8 +60,11 @@ export default function HomePage() {
 
       <div className="flex flex-col sm:flex-row gap-6">
         {/* Botão principal */}
-        <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg">
-          <Link href="/cadastro">Começar Agora</Link>
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-100 bg-blue-600 hover:text-white hover:bg-blue-100">
+        <Link href="/contato">Entre em Contato</Link>
         </Button>
 
         {/* Botão secundário transparente */}
@@ -176,15 +177,14 @@ export default function HomePage() {
 </section>
 
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-4xl font-bold text-white mb-6">Pronto para simplificar seus processos?</h3>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Junte-se a centenas de empresas que já confiam no FACILITA
           </p>
           <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-            <Link href="/abrir-empresa">Começar Gratuitamente</Link>
+            <Link href="/contato">Entre em Contato</Link>
           </Button>
         </div>
       </section>

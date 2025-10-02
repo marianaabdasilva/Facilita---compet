@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Building2, Shield, Edit } from "lucide-react"
+import { User, Mail,Shield, Edit } from "lucide-react"
 
 export default function ProfilePage() {
   const { user } = useAuth()
