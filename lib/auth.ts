@@ -1,4 +1,5 @@
-// Mock authentication system - replace with real auth later
+import axios from "axios"
+
 export interface User {
   id: string
   name: string
@@ -18,47 +19,25 @@ export interface AuthState {
   isAuthenticated: boolean
 }
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@empresa.com",
-    role: "client",
-    company: {
-      id: "1",
-      name: "Empresa Silva LTDA",
-      cnpj: "12.345.678/0001-90",
-    },
-  },
-  {
-    id: "2",
-    name: "Maria Admin",
-    email: "admin@facilita.com",
-    role: "admin",
-  },
-  {
-    id: "3",
-    name: "Carlos Funcionário",
-    email: "carlos@facilita.com",
-    role: "employee",
-    department: "Atendimento",
-  },
-]
-
 export const authService = {
   async login(email: string, password: string): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const res = await axios.post("http://localhost:4000/login", {
+        Email: email,
+        Senha: password,
+      });
 
-    const user = mockUsers.find((u) => u.email === email)
-    if (!user) {
-      throw new Error("Usuário não encontrado")
+      console.log("Resposta completa do backend:", res);
+
+      const { token, user } = res.data
+
+      localStorage.setItem("token", token)
+      localStorage.setItem("user", JSON.stringify(user))
+
+      return user
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || "Erro no login")
     }
-
-    // Store in localStorage (replace with proper token handling)
-    localStorage.setItem("user", JSON.stringify(user))
-    return user
   },
 
   async register(userData: {
@@ -67,21 +46,26 @@ export const authService = {
     phone: string
     password: string
   }): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: userData.name,
-      email: userData.email,
-      role: "client",
+    try {
+
+      const res = await axios.post("http://localhost:4000/cadastro", userData)
+
+      const { token, user } = res.data
+
+      localStorage.setItem("token", token)
+      localStorage.setItem("user", JSON.stringify(user))
+
+      return user
+
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || "Erro no registro")
     }
-
-    localStorage.setItem("user", JSON.stringify(newUser))
-    return newUser
   },
 
   async logout(): Promise<void> {
+    
+    localStorage.removeItem("token")
     localStorage.removeItem("user")
   },
 

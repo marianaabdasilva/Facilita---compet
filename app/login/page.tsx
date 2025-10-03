@@ -32,15 +32,21 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     try {
+      const response = await login(email, password);
+      console.log("Resposta do backend:", response);
+      
       await login(email, password);
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (user.role === "admin") {
+      if (user.role === "Administrador") {
         router.push("/admin/dashboard");
       } else if (user.role === "employee") {
         router.push("/employee/dashboard")
       } else {
         router.push("/dashboard");
       }
+
+
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login");
     }
