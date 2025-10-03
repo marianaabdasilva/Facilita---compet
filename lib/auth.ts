@@ -22,7 +22,7 @@ export interface AuthState {
 export const authService = {
   async login(email: string, password: string): Promise<User> {
     try {
-      const res = await axios.post("http://localhost:4000/login", {
+      const res = await axios.post("https://projeto-back-ten.vercel.app/login", {
         Email: email,
         Senha: password,
       });
@@ -49,7 +49,7 @@ export const authService = {
 
     try {
 
-      const res = await axios.post("http://localhost:4000/cadastro", userData)
+      const res = await axios.post("https://projeto-back-ten.vercel.app/cadastro", userData)
 
       const { token, user } = res.data
 
