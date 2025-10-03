@@ -140,7 +140,7 @@ export default function AtividadePage() {
     try {
       const combinedData = { ...userData, ...activityData };
       localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      router.push("/abrir-empresa/documentos");
+      router.push("/admin/generate-links");
     } catch (err) {
       console.error(err);
       setError("Erro ao salvar dados. Tente novamente.");

@@ -53,7 +53,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               height={48}
               className="w-29 h-29"
             />
-{/* Navigation */}
+              
+              {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
               {navigation.map((item) => {
                 const Icon = item.icon

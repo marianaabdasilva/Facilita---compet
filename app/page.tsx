@@ -63,7 +63,7 @@ export default function HomePage() {
         <Button
           size="lg"
           variant="outline"
-          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-100 bg-blue-600 hover:text-white hover:bg-blue-100">
+          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-100 bg-blue-600 hover:text-blue-600 hover:bg-blue-100">
         <Link href="/contato">Entre em Contato</Link>
         </Button>
 
@@ -71,7 +71,7 @@ export default function HomePage() {
         <Button
           size="lg"
           variant="outline"
-          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:text-white hover:bg-blue-100"
+          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:text-white hover:bg-blue-100 hover:border-blue-100"
         > <Link href="/sobre">
           Saiba Mais </Link>
         </Button>
