@@ -3,24 +3,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Building2, Mail, Phone, MapPin } from "lucide-react"
+import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function ContatoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-blue-600 shadow-lg">
+      <header className="bg-transparent">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <Building2 className="w-7 h-7 text-blue-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-white">FACILITA</h1>
+              <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
+                                        <Image
+                                          src="/Facilitaj.png"
+                                          alt="Logo"
+                                          width={120}
+                                          height={120}
+                                          className="object-contain"
+                                        />
+                                      </div>
+      
             </Link>
             <Link href="/login">
-              <Button variant="ghost" className="text-white hover:bg-blue-700 hover:text-white">
+              <Button variant="ghost" className="text-white bg-blue-600 hover:bg-transparent hover:text-blue-600">
                 Entrar
               </Button>
             </Link>
@@ -29,11 +36,11 @@ export default function ContatoPage() {
       </header>
 
       {/* Contact Section */}
-      <section className="py-20">
+      <section className="py-6">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Entre em Contato</h2>
+              <h2 className="text-4xl font-bold text-blue-600 mb-8">Entre em Contato</h2>
               <p className="text-xl text-gray-600">
                 Estamos aqui para ajudar você a simplificar seus processos empresariais
               </p>
@@ -73,10 +80,40 @@ export default function ContatoPage() {
 
               {/* Contact Information */}
               <div className="space-y-6">
+                <Card className="shadow-lg border-2 border-green-500 bg-gradient-to-br from-green-50 to-white">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-green-700">
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      Contato Principal - WhatsApp
+                    </CardTitle>
+                    <CardDescription>Nossa forma preferencial de atendimento</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-green-100 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                          <MessageCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">WhatsApp</h4>
+                          <p className="text-green-700 font-medium">(11) 99999-9999</p>
+                        </div>
+                      </div>
+                    </div>
+                    <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="block">
+                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Iniciar Conversa no WhatsApp
+                      </Button>
+                    </a>
+                    <p className="text-sm text-gray-600 text-center">Atendimento rápido e direto pelo WhatsApp</p>
+                  </CardContent>
+                </Card>
+
                 <Card className="shadow-lg">
                   <CardHeader>
-                    <CardTitle>Informações de Contato</CardTitle>
-                    <CardDescription>Outras formas de entrar em contato conosco</CardDescription>
+                    <CardTitle>Outras Formas de Contato</CardTitle>
+                    <CardDescription>Canais alternativos de comunicação</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-start space-x-3">

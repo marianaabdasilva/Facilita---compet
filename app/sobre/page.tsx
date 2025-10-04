@@ -35,16 +35,12 @@ export default function AboutPage() {
           <Link href="/login">
             <Button
               variant="ghost"
-              className="px-6 py-2 border-2 border-blue-600 text-blue-600 bg-transparent hover:text-white hover:bg-blue-100"
+              className="px-6 py-2 border-2 border-blue-600 text-white bg-blue-600 hover:text-blue-600 hover:bg-blue-100"
             >
               Entrar
             </Button>
           </Link>
-          <Link href="/abrir-empresa">
-            <Button className="bg-blue-600 text-white hover:text-blue-600 hover:bg-blue-100">
-              Começar Agora
-            </Button>
-          </Link>
+        
         </div>
       </div>
     </div>
@@ -52,11 +48,11 @@ export default function AboutPage() {
 
 {/* Hero Section */}
 <section className="min-h-screen flex items-center bg-blue-100">
-  <div className="container mx-auto px-6 grid md:grid-cols-2 gap-14 items-center">
+  <div className="container mx-auto px-8 grid md:grid-cols-2 gap-14 items-center">
     
     {/* Texts Left */}
     <div className="text-left">
-      <Badge className="mb-1 bg-blue-100 text-blue-700 hover:bg-blue-100">
+      <Badge className="mb-2 bg-blue-100 text-blue-700 hover:bg-blue-100">
         Sobre o Projeto
       </Badge>
       <h2 className="text-6xl font-bold text-gray-900 mb-6 text-balance leading-tight">
@@ -84,7 +80,7 @@ export default function AboutPage() {
 
       {/* Mission Section */}
       <section className="py-40 bg-white">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-10">
@@ -136,7 +132,7 @@ export default function AboutPage() {
 
       {/* How It Works */}
       <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-8">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Como Funciona</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -176,7 +172,7 @@ export default function AboutPage() {
 
       {/* Features Deep Dive */}
       <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-8">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Recursos da Plataforma</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
@@ -318,19 +314,19 @@ export default function AboutPage() {
             Junte-se a milhares de empreendedores que já confiam no FACILITA para seus processos empresariais
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/abrir-empresa">
+            <Link href="/login">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-                Abrir Minha Empresa
+                Fazer login
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/contato">
               <Button
                 size="lg"
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
               >
-                Fazer Login
+                Entre em contato
               </Button>
             </Link>
           </div>
