@@ -30,6 +30,7 @@ export default function CadastroPage() {
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
 
+
     if (password !== confirmPassword) {
       setError("As senhas não coincidem")
       return
@@ -41,7 +42,7 @@ export default function CadastroPage() {
     }
 
     try {
-      await register({ name, email, phone, password })
+      await register({ name, email, phone, password, role: selectedRole })
 
       // Redirect based on role
       if (selectedRole === "employee") {

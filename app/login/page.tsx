@@ -34,10 +34,11 @@ export default function LoginPage() {
     try {
       const response = await login(email, password);
       console.log("Resposta do backend:", response);
-      
+
       await login(email, password);
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (user.role === "Administrador") {
+      
+      if (user.role === "admin") {
         router.push("/admin/dashboard");
       } else if (user.role === "employee") {
         router.push("/employee/dashboard")

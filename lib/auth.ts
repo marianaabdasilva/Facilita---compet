@@ -4,7 +4,7 @@ export interface User {
   id: string
   name: string
   email: string
-  role: "client" | "employee" | "admin"
+  role: "client" | "employee" | "Administrador"
   company?: {
     id: string
     name: string
@@ -22,7 +22,7 @@ export interface AuthState {
 export const authService = {
   async login(email: string, password: string): Promise<User> {
     try {
-      const res = await axios.post("http://localhost:4000/login", {
+      const res = await axios.post("https://projeto-back-ten.vercel.app/login", {
         Email: email,
         Senha: password,
       });
@@ -45,11 +45,12 @@ export const authService = {
     email: string
     phone: string
     password: string
+    role: "client" | "employee"
   }): Promise<User> {
 
     try {
 
-      const res = await axios.post("http://localhost:4000/cadastro", userData)
+      const res = await axios.post("https://projeto-back-ten.vercel.app/cadastro", userData)
 
       const { token, user } = res.data
 
