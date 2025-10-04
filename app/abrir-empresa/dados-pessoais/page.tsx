@@ -59,7 +59,9 @@ export default function DadosPessoaisPage() {
 
   const [cpf, setCpf] = useState("");
   const [cep, setCep] = useState("");
-  const [address, setAddress] = useState("");
+  const [street, setStreet] = useState("");
+  const [number, setNumber] = useState("");
+  const [complement, setComplement] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
 
@@ -80,7 +82,7 @@ export default function DadosPessoaisPage() {
         .then((res) => res.json())
         .then((data) => {
           if (!data.erro) {
-            setAddress(`${data.logradouro} ${data.complemento || ""}`.trim());
+            setStreet(data.logradouro || "");
             setCity(data.localidade);
             setState(data.uf);
           } else {
@@ -115,7 +117,7 @@ export default function DadosPessoaisPage() {
     }
 
     if (birthDate < minDate || birthDate > maxDate) {
-      setError("A data de nascimento deve indicar idade entre 18 e 100 anos.");
+      setError("Apenas maiores de 18 anos");
       setIsLoading(false);
       return;
     }
@@ -124,9 +126,11 @@ export default function DadosPessoaisPage() {
       cpf: cpfValue,
       rg: formData.get("rg") as string,
       birthDate: birthDateValue,
-      address: formData.get("address") as string,
-      city: formData.get("city") as string,
-      state: formData.get("state") as string,
+      street: street,
+      number: number,
+      complement: complement, // opcional
+      city: city,
+      state: state,
       zipCode: cep,
     };
 
@@ -196,7 +200,7 @@ export default function DadosPessoaisPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Dados Pessoais</CardTitle>
               <CardDescription>
-                Agora precisamos dos seus dados pessoais para o MEI
+                Dados pessoais para o cadastro da empresa
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -259,6 +263,7 @@ export default function DadosPessoaisPage() {
                   </div>
                 </div>
 
+                {/* CEP */}
                 <div className="space-y-2">
                   <Label htmlFor="zipCode">CEP *</Label>
                   <div className="relative">
@@ -278,8 +283,8 @@ export default function DadosPessoaisPage() {
                     />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 {/* Cidade e Estado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">Cidade *</Label>
                     <Input
@@ -303,18 +308,44 @@ export default function DadosPessoaisPage() {
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Endereço Completo *</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    type="text"
-                    placeholder="Rua, número, complemento"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
+
+                {/* Rua, Número, Complemento */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="street">Rua *</Label>
+                    <Input
+                      id="street"
+                      name="street"
+                      type="text"
+                      required
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="number">Número *</Label>
+                    <Input
+                      id="number"
+                      name="number"
+                      type="text"
+                      required
+                      value={number}
+                      onChange={(e) => setNumber(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="complement">Complemento</Label>
+                    <Input
+                      id="complement"
+                      name="complement"
+                      type="text"
+                      placeholder="Opcional"
+                      value={complement}
+                      onChange={(e) => setComplement(e.target.value)}
+                    />
+                  </div>
                 </div>
+
                 <div className="flex justify-between pt-6">
                   <Link href="/abrir-empresa/conta">
                     <Button type="button" variant="outline">
@@ -339,3 +370,4 @@ export default function DadosPessoaisPage() {
     </div>
   );
 }
+

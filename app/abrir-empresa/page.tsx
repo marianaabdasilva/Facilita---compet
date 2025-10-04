@@ -56,11 +56,7 @@ export default function AbrirEmpresaPage() {
                   />
               </div>
             </Link>
-            <Link href="/login">
-              <Button variant="ghost" className="text-white hover:text-blue-100 hover:bg-blue-600">
-                Já tenho conta
-              </Button>
-            </Link>
+           
           </div>
         </div>
       </header>
@@ -70,7 +66,6 @@ export default function AbrirEmpresaPage() {
           {/* Progress Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Abrir Empresa</h1>
-            <p className="text-xl text-gray-600">Processo simples e rápido para abertura do seu MEI</p>
           </div>
 
           {/* Progress Steps */}
@@ -112,9 +107,9 @@ export default function AbrirEmpresaPage() {
           {/* Current Step Content */}
           <Card className="shadow-xl border-0">
             <CardHeader>
-              <CardTitle className="text-2xl">Bem-vindo ao FACILITA</CardTitle>
+              <CardTitle className="text-2xl">Bem-vindo ao FACILITA JÁ</CardTitle>
               <CardDescription>
-                Vamos começar o processo de abertura da sua empresa. Este processo é dividido em 4 etapas simples.
+                Vamos começar o processo de abertura da empresa. Este processo é dividido em 4 etapas simples.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -138,7 +133,7 @@ export default function AbrirEmpresaPage() {
               </div>
 
               <div className="flex justify-between pt-6">
-                <Link href="/">
+                <Link href="/admin/clients">
                   <Button variant="outline">Voltar ao Início</Button>
                 </Link>
                 <Link href="/abrir-empresa/conta">

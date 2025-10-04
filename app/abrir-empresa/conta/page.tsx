@@ -99,8 +99,8 @@ export default function CriarContaPage() {
 
           <Card className="shadow-xl border-0">
             <CardHeader>
-              <CardTitle className="text-2xl">Criar Sua Conta</CardTitle>
-              <CardDescription>Primeiro, vamos criar sua conta de acesso ao sistema</CardDescription>
+              <CardTitle className="text-2xl">Criar Conta</CardTitle>
+              <CardDescription>Os campos obrigatorios são marcados com * </CardDescription>
             </CardHeader>
             <CardContent>
               {error && (
@@ -120,7 +120,7 @@ export default function CriarContaPage() {
                       id="name"
                       name="name"
                       type="text"
-                      placeholder="Seu nome completo"
+                      placeholder="Nome completo"
                       className="pl-10"
                       required
                     />
@@ -136,7 +136,7 @@ export default function CriarContaPage() {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="seu@email.com"
+                      placeholder="@email.com"
                       className="pl-10"
                       required
                     />

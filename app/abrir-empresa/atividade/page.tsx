@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-// Se quiser usar react-select (ou similar) para multiselect
 import Select from "react-select";
 
 import { Button } from "@/components/ui/button";
@@ -17,12 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowLeft, ArrowRight, Search } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface CnaeOption {
-  value: string; // por ex: “4724-5/00”
-  label: string; // por ex: “4724-5/00 — Abatedor(A) De Aves Com Comercialização …”
+  value: string;
+  label: string;
   id_cnae: number;
 }
 
@@ -31,24 +30,24 @@ export default function AtividadePage() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const [userData, setUserData] = useState<any>(null);
 
-  // para guardar opções de CNAE vindas da API
+  // CNAEs
   const [allCnaes, setAllCnaes] = useState<CnaeOption[]>([]);
-  // estado para filtro de busca de texto
   const [cnaeSearch, setCnaeSearch] = useState("");
-  // seleção múltipla de CNAEs
   const [selectedCnaes, setSelectedCnaes] = useState<CnaeOption[]>([]);
 
-  // estados de endereço via CEP
+  // Endereço
+  const [useDifferentAddress, setUseDifferentAddress] = useState(false);
   const [cep, setCep] = useState("");
-  const [address, setAddress] = useState("");
+  const [street, setStreet] = useState("");
+  const [number, setNumber] = useState("");
+  const [complement, setComplement] = useState("");
   const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
   const [stateUf, setStateUf] = useState("");
 
-  // Carregar dados temporários do usuário (se houver)
+  // Carregar dados temporários do usuário
   useEffect(() => {
     const tempData = localStorage.getItem("tempUserData");
     if (!tempData) {
@@ -58,14 +57,12 @@ export default function AtividadePage() {
     setUserData(JSON.parse(tempData));
   }, [router]);
 
-  // Função para buscar todos os CNAEs da API
+  // Buscar CNAEs
   const fetchCnaes = async () => {
     try {
-      const resp = await axios.get("https://projeto-back-ten.vercel.app/cnae"); 
-      // ou diretamente: “https://projeto-back-ten.vercel.app/cnae” dependendo da configuração de CORS / proxy
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/cnae");
       const data: Array<{ id_cnae: number; nome: string; numero: string }> =
         resp.data;
-      // transformar em CnaeOption
       const opts: CnaeOption[] = data.map((c) => ({
         value: c.numero,
         label: `${c.numero} — ${c.nome}`,
@@ -81,18 +78,16 @@ export default function AtividadePage() {
     fetchCnaes();
   }, []);
 
-  // Função para buscar via CEP (ex: usar ViaCEP ou outra API)
+  // Buscar endereço pelo CEP
   const fetchAddressByCep = async (cepParam: string) => {
-    // limpar formatações, manter apenas dígitos
     const digits = cepParam.replace(/\D/g, "");
-    if (digits.length !== 8) {
-      return;
-    }
+    if (digits.length !== 8) return;
+
     try {
       const resp = await axios.get(`https://viacep.com.br/ws/${digits}/json/`);
       if (resp.data) {
         const d = resp.data;
-        setAddress(d.logradouro || "");
+        setStreet(d.logradouro || "");
         setDistrict(d.bairro || "");
         setCity(d.localidade || "");
         setStateUf(d.uf || "");
@@ -102,23 +97,29 @@ export default function AtividadePage() {
     }
   };
 
-  // sempre que cep mudar (após digitar), tenta buscar endereço
   useEffect(() => {
-    if (cep.replace(/\D/g, "").length === 8) {
+    if (cep.replace(/\D/g, "").length === 8 && useDifferentAddress) {
       fetchAddressByCep(cep);
     }
-  }, [cep]);
+  }, [cep, useDifferentAddress]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // validações mínimas
     if (selectedCnaes.length === 0) {
       setError("Por favor, selecione pelo menos uma atividade (CNAE).");
       setIsLoading(false);
       return;
+    }
+
+    if (useDifferentAddress) {
+      if (!cep || !street || !number || !district || !city || !stateUf) {
+        setError("Preencha todos os campos de endereço da empresa.");
+        setIsLoading(false);
+        return;
+      }
     }
 
     const formData = new FormData(e.currentTarget);
@@ -130,11 +131,17 @@ export default function AtividadePage() {
       })),
       fantasyName: formData.get("fantasyName") as string,
       description: formData.get("description") as string,
-      cep,
-      address,
-      district,
-      city,
-      state: stateUf,
+      enderecoEmpresa: useDifferentAddress
+        ? {
+            cep,
+            street,
+            number,
+            complement,
+            district,
+            city,
+            state: stateUf,
+          }
+        : null,
     };
 
     try {
@@ -149,11 +156,8 @@ export default function AtividadePage() {
     }
   };
 
-  if (!userData) {
-    return <div>Carregando...</div>;
-  }
+  if (!userData) return <div>Carregando...</div>;
 
-  // filtra opções de CNAE conforme texto digitado
   const filteredCnaes = allCnaes.filter((opt) => {
     const lower = opt.label.toLowerCase();
     return (
@@ -197,10 +201,10 @@ export default function AtividadePage() {
             <CardHeader>
               <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
               <CardDescription>
-                Defina as atividades (CNAEs) que você irá exercer
+                Defina as atividades (CNAEs) que a empresa irá exercer
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent>+
               {error && (
                 <Alert className="mb-6" variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -209,24 +213,18 @@ export default function AtividadePage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* CNAEs (multiselect) */}
-
+                {/* CNAEs */}
                 <div className="space-y-2">
                   <Label htmlFor="cnaes">Atividades (CNAEs) *</Label>
                   <Select
                     isMulti
                     options={filteredCnaes}
                     value={selectedCnaes}
-                    onChange={(sel) => {
-                      // sel pode ser null ou array
-                      if (Array.isArray(sel)) {
-                        setSelectedCnaes(sel);
-                      } else if (sel) {
-                        setSelectedCnaes([sel]);
-                      } else {
-                        setSelectedCnaes([]);
-                      }
-                    }}
+                    onChange={(sel) =>
+                      Array.isArray(sel)
+                        ? setSelectedCnaes(sel)
+                        : setSelectedCnaes(sel ? [sel] : [])
+                    }
                     className="z-50"
                     placeholder="Selecione uma ou mais atividades"
                   />
@@ -244,74 +242,113 @@ export default function AtividadePage() {
                   />
                 </div>
 
-                {/* Endereço via CEP */}
-                <div className="mt-6 border-t pt-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    Endereço da Empresa (auto preenchido via CEP)
-                  </h3>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cep">CEP</Label>
-                    <Input
-                      id="cep"
-                      name="cep"
-                      type="text"
-                      placeholder="Digite o CEP"
-                      value={cep}
-                      onChange={(e) => setCep(e.target.value)}
-                      required
+                {/* Checkbox para endereço diferente */}
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={useDifferentAddress}
+                      onChange={(e) => setUseDifferentAddress(e.target.checked)}
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Logradouro</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      type="text"
-                      placeholder="Rua, número, complemento"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="district">Bairro</Label>
-                    <Input
-                      id="district"
-                      name="district"
-                      type="text"
-                      placeholder="Bairro"
-                      value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Cidade</Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        type="text"
-                        placeholder="Cidade"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">Estado (UF)</Label>
-                      <Input
-                        id="state"
-                        name="state"
-                        type="text"
-                        placeholder="SP, RJ, etc."
-                        value={stateUf}
-                        onChange={(e) => setStateUf(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                    <span>
+                      A empresa não se localiza na residência do titular
+                    </span>
+                  </label>
                 </div>
+
+                {/* Endereço */}
+                {useDifferentAddress && (
+                  <div className="mt-6 border-t pt-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                      Endereço da Empresa
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="cep">CEP *</Label>
+                      <Input
+                        id="cep"
+                        type="text"
+                        placeholder="Digite o CEP"
+                        value={cep}
+                        onChange={(e) => setCep(e.target.value)}
+                        required={useDifferentAddress}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="street">Rua *</Label>
+                        <Input
+                          id="street"
+                          type="text"
+                          placeholder="Rua"
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                          required={useDifferentAddress}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="number">Número *</Label>
+                        <Input
+                          id="number"
+                          type="text"
+                          placeholder="Número"
+                          value={number}
+                          onChange={(e) => setNumber(e.target.value)}
+                          required={useDifferentAddress}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="complement">Complemento</Label>
+                      <Input
+                        id="complement"
+                        type="text"
+                        placeholder="Apto, Bloco, Sala..."
+                        value={complement}
+                        onChange={(e) => setComplement(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="district">Bairro *</Label>
+                      <Input
+                        id="district"
+                        type="text"
+                        placeholder="Bairro"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        required={useDifferentAddress}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Cidade *</Label>
+                        <Input
+                          id="city"
+                          type="text"
+                          placeholder="Cidade"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required={useDifferentAddress}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="state">Estado (UF) *</Label>
+                        <Input
+                          id="state"
+                          type="text"
+                          placeholder="SP, RJ..."
+                          value={stateUf}
+                          onChange={(e) => setStateUf(e.target.value)}
+                          required={useDifferentAddress}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Descrição */}
                 <div className="space-y-2">
@@ -319,7 +356,7 @@ export default function AtividadePage() {
                   <textarea
                     id="description"
                     name="description"
-                    placeholder="Descreva brevemente a atividade que você irá exercer"
+                    placeholder="Descreva brevemente a atividade"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
