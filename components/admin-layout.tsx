@@ -46,6 +46,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="container mx-auto px-4 py-0">
           <div className="flex items-center justify-between">
             {/* Logo */}
+            <Link href = "/">
             <img
               src="/Facilitaj.png"
               alt="Logo da empresa"
@@ -53,6 +54,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               height={48}
               className="w-29 h-29"
             />
+            </Link>
               
               {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">

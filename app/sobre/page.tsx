@@ -14,6 +14,7 @@ export default function AboutPage() {
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-3">
+          <Link href = "/" className="Back">
           <div className="w-32 h-32 bg-transparent rounded-full flex items-center justify-center">
             <Image
               src="/Facilitaj.png"
@@ -23,6 +24,7 @@ export default function AboutPage() {
               className="object-contain"
             />
           </div>
+          </Link>
         </div>
 
         {/* Navigation */}

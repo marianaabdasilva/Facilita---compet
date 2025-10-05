@@ -211,7 +211,7 @@ export default function CriarContaPage() {
 
                 {/* Botões */}
                 <div className="flex justify-between pt-6">
-                  <Link href="/abrir-empresa">
+                  <Link href="/admin/clients">
                     <Button type="button" variant="outline">
                       <ArrowLeft className="w-4 h-4 mr-2" />
                       Voltar
