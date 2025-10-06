@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Mail, Calendar, Shield, UserPlus, RefreshCw } from "lucide-react"
+import { Search, UserPlus, RefreshCw } from "lucide-react"
 import documents from "@/lib/documents"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle } from "lucide-react"
@@ -25,21 +24,30 @@ export default function UsersPage() {
     Nome: "",
     Email: "",
     Senha: "",
-    nivel_usuario_id: 2, // padrão como "cliente"  // 1 = admin, 2 = cliente
+    nivel_usuario_id: 2, // padrão cliente
   })
 
-  // Carrega a lista de usuários
+  // 🔹 Carrega a lista de usuários
   const fetchUsuarios = async () => {
     try {
       setLoading(true)
+      setError(null)
+
       const res = await documents.get("/usuarios")
-      setUsuarios(res.data)
+      console.log("📦 Dados recebidos:", res.data)
+
+      // Garante que sempre será um array
+      const data =
+        Array.isArray(res.data) ? res.data :
+        Array.isArray(res.data.usuarios) ? res.data.usuarios :
+        []
+
+      setUsuarios(data)
     } catch (err) {
       console.error(err)
       setError("Erro ao carregar usuários.")
     } finally {
       setLoading(false)
-    //console.log(usuarios) // Debug: Verifica os dados carregadosgi
     }
   }
 
@@ -47,7 +55,7 @@ export default function UsersPage() {
     fetchUsuarios()
   }, [])
 
-  // Cadastra u novo usuário
+  // 🔹 Cadastra um novo usuário
   const handleCadastro = async () => {
     if (!novoUsuario.Nome || !novoUsuario.Email || !novoUsuario.Senha) {
       setError("Preencha todos os campos antes de cadastrar.")
@@ -67,12 +75,16 @@ export default function UsersPage() {
     }
   }
 
-  const filteredUsers = usuarios.filter(
-    (user) =>
-      user.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // 🔹 Filtragem segura
+  const filteredUsers = Array.isArray(usuarios)
+    ? usuarios.filter(
+        (user) =>
+          user.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : []
 
+  // 🔹 Tela de carregamento
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -82,10 +94,12 @@ export default function UsersPage() {
     )
   }
 
+  // 🔹 Interface principal
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
         <div className="space-y-8">
+          {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Usuários</h1>
@@ -93,7 +107,7 @@ export default function UsersPage() {
             </div>
           </div>
 
-          {/* Mensagens */}
+          {/* Alertas */}
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -107,7 +121,7 @@ export default function UsersPage() {
             </Alert>
           )}
 
-          {/* Cadastro de Usuário */}
+          {/* 🔹 Cadastro de Usuário */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -140,13 +154,14 @@ export default function UsersPage() {
             </CardContent>
           </Card>
 
-          {/* Lista de Usuários */}
+          {/* 🔹 Lista de Usuários */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Lista de Usuários ({filteredUsers.length})</CardTitle>
               <CardDescription>Todos os usuários cadastrados no sistema</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Busca */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -157,6 +172,7 @@ export default function UsersPage() {
                 />
               </div>
 
+              {/* Tabela */}
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -167,17 +183,25 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id_usuario}>
-                        <TableCell className="font-medium">{user.nome}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {user.nivel_usuario_id === 1 ? "Administrador" : "Cliente"}
-                          </Badge>
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id_usuario}>
+                          <TableCell className="font-medium">{user.nome}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {user.nivel_usuario_id === 1 ? "Administrador" : "Cliente"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-gray-500 py-6">
+                          Nenhum usuário encontrado.
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </div>

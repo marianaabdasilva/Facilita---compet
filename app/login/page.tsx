@@ -135,13 +135,7 @@ export default function LoginPage() {
               </Button>
 
               <div className="text-xs text-gray-500 text-center mt-4">
-                <p>Demo: joao@empresa.com (cliente) | carlos@facilita.com (funcionário) | admin@facilita.com (admin)</p>
-                <p className="mt-2">
-                  Não tem conta?{" "}
-                  <Link href="/cadastro" className="text-blue-600 hover:underline">
-                    Criar Conta
-                  </Link>
-                </p>
+                <p>Demo: Admintest@gmail.com e senha:123456</p>
               </div>
             </form>
           </CardContent>

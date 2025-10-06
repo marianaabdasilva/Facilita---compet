@@ -19,6 +19,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+// ✅ (adicione essas importações se estiver usando autenticação/admin)
+import { AuthGuard } from "@/components/auth-guard";
+import { AdminLayout } from "@/components/admin-layout";
+
 interface CnaeOption {
   value: string;
   label: string;
@@ -166,224 +170,211 @@ export default function AtividadePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <header className="bg-blue-600 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-            <img
-              src="/Facilitaj.png"
-              alt="Logo da Empresa"
-              width={20}
-              height={20}
-              className="w-16 h-16 text-blue-600"
-            />
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <div className="flex items-center text-sm text-gray-600 mb-4">
-              <span className="text-blue-600 font-medium">Etapa 3 de 4</span>
-              <span className="mx-2">•</span>
-              <span>Atividade</span>
+    <AuthGuard requiredRole="admin">
+      <AdminLayout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            {/* Barra de progresso */}
+            <div className="mb-8">
+              <div className="flex items-center text-sm text-gray-600 mb-4">
+                <span className="text-blue-600 font-medium">Etapa 3 de 4</span>
+                <span className="mx-2">•</span>
+                <span>Atividade</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full"
+                  style={{ width: "75%" }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{ width: "75%" }}
-              />
-            </div>
-          </div>
 
-          <Card className="shadow-xl border-0">
-            <CardHeader>
-              <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
-              <CardDescription>
-                Defina as atividades (CNAEs) que a empresa irá exercer
-              </CardDescription>
-            </CardHeader>
-            <CardContent>+
-              {error && (
-                <Alert className="mb-6" variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            <Card className="shadow-xl border-0">
+              <CardHeader>
+                <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
+                <CardDescription>
+                  Defina as atividades (CNAEs) que a empresa irá exercer
+                </CardDescription>
+              </CardHeader>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* CNAEs */}
-                <div className="space-y-2">
-                  <Label htmlFor="cnaes">Atividades (CNAEs) *</Label>
-                  <Select
-                    isMulti
-                    options={filteredCnaes}
-                    value={selectedCnaes}
-                    onChange={(sel) =>
-                      Array.isArray(sel)
-                        ? setSelectedCnaes(sel)
-                        : setSelectedCnaes(sel ? [sel] : [])
-                    }
-                    className="z-50"
-                    placeholder="Selecione uma ou mais atividades"
-                  />
-                </div>
-
-                {/* Nome Fantasia */}
-                <div className="space-y-2">
-                  <Label htmlFor="fantasyName">Nome da Empresa *</Label>
-                  <Input
-                    id="fantasyName"
-                    name="fantasyName"
-                    type="text"
-                    placeholder="Nome da sua empresa"
-                    required
-                  />
-                </div>
-
-                {/* Checkbox para endereço diferente */}
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={useDifferentAddress}
-                      onChange={(e) => setUseDifferentAddress(e.target.checked)}
-                    />
-                    <span>
-                      A empresa não se localiza na residência do titular
-                    </span>
-                  </label>
-                </div>
-
-                {/* Endereço */}
-                {useDifferentAddress && (
-                  <div className="mt-6 border-t pt-6 space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      Endereço da Empresa
-                    </h3>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cep">CEP *</Label>
-                      <Input
-                        id="cep"
-                        type="text"
-                        placeholder="Digite o CEP"
-                        value={cep}
-                        onChange={(e) => setCep(e.target.value)}
-                        required={useDifferentAddress}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="street">Rua *</Label>
-                        <Input
-                          id="street"
-                          type="text"
-                          placeholder="Rua"
-                          value={street}
-                          onChange={(e) => setStreet(e.target.value)}
-                          required={useDifferentAddress}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="number">Número *</Label>
-                        <Input
-                          id="number"
-                          type="text"
-                          placeholder="Número"
-                          value={number}
-                          onChange={(e) => setNumber(e.target.value)}
-                          required={useDifferentAddress}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="complement">Complemento</Label>
-                      <Input
-                        id="complement"
-                        type="text"
-                        placeholder="Apto, Bloco, Sala..."
-                        value={complement}
-                        onChange={(e) => setComplement(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="district">Bairro *</Label>
-                      <Input
-                        id="district"
-                        type="text"
-                        placeholder="Bairro"
-                        value={district}
-                        onChange={(e) => setDistrict(e.target.value)}
-                        required={useDifferentAddress}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">Cidade *</Label>
-                        <Input
-                          id="city"
-                          type="text"
-                          placeholder="Cidade"
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          required={useDifferentAddress}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">Estado (UF) *</Label>
-                        <Input
-                          id="state"
-                          type="text"
-                          placeholder="SP, RJ..."
-                          value={stateUf}
-                          onChange={(e) => setStateUf(e.target.value)}
-                          required={useDifferentAddress}
-                        />
-                      </div>
-                    </div>
-                  </div>
+              <CardContent>
+                {error && (
+                  <Alert className="mb-6" variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
 
-                {/* Descrição */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição da Atividade</Label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Descreva brevemente a atividade"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                  />
-                </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* CNAEs */}
+                  <div className="space-y-2">
+                    <Label htmlFor="cnaes">Atividades (CNAEs) *</Label>
+                    <Select
+                      isMulti
+                      options={filteredCnaes}
+                      value={selectedCnaes}
+                      onChange={(sel) =>
+                        Array.isArray(sel)
+                          ? setSelectedCnaes(sel)
+                          : setSelectedCnaes(sel ? [sel] : [])
+                      }
+                      className="z-50"
+                      placeholder="Selecione uma ou mais atividades"
+                    />
+                  </div>
 
-                {/* Botões */}
-                <div className="flex justify-between pt-6">
-                  <Link href="/abrir-empresa/dados-pessoais">
-                    <Button type="button" variant="outline">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Voltar
+                  {/* Nome Fantasia */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fantasyName">Nome da Empresa *</Label>
+                    <Input
+                      id="fantasyName"
+                      name="fantasyName"
+                      type="text"
+                      placeholder="Nome da sua empresa"
+                      required
+                    />
+                  </div>
+
+                  {/* Checkbox para endereço diferente */}
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={useDifferentAddress}
+                        onChange={(e) => setUseDifferentAddress(e.target.checked)}
+                      />
+                      <span>
+                        A empresa não se localiza na residência do titular
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Endereço */}
+                  {useDifferentAddress && (
+                    <div className="mt-6 border-t pt-6 space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        Endereço da Empresa
+                      </h3>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cep">CEP *</Label>
+                        <Input
+                          id="cep"
+                          type="text"
+                          placeholder="Digite o CEP"
+                          value={cep}
+                          onChange={(e) => setCep(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label htmlFor="street">Rua *</Label>
+                          <Input
+                            id="street"
+                            type="text"
+                            placeholder="Rua"
+                            value={street}
+                            onChange={(e) => setStreet(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="number">Número *</Label>
+                          <Input
+                            id="number"
+                            type="text"
+                            placeholder="Número"
+                            value={number}
+                            onChange={(e) => setNumber(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="complement">Complemento</Label>
+                        <Input
+                          id="complement"
+                          type="text"
+                          placeholder="Apto, Bloco, Sala..."
+                          value={complement}
+                          onChange={(e) => setComplement(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="district">Bairro *</Label>
+                        <Input
+                          id="district"
+                          type="text"
+                          placeholder="Bairro"
+                          value={district}
+                          onChange={(e) => setDistrict(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="city">Cidade *</Label>
+                          <Input
+                            id="city"
+                            type="text"
+                            placeholder="Cidade"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="state">Estado (UF) *</Label>
+                          <Input
+                            id="state"
+                            type="text"
+                            placeholder="SP, RJ..."
+                            value={stateUf}
+                            onChange={(e) => setStateUf(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Descrição */}
+                  <div className="space-y-2">
+                    <Label htmlFor="description">
+                      Descrição da Atividade
+                    </Label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      placeholder="Descreva brevemente a atividade"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Botões */}
+                  <div className="flex justify-between pt-6">
+                    <Link href="/abrir-empresa/dados-pessoais">
+                      <Button type="button" variant="outline">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Voltar
+                      </Button>
+                    </Link>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Salvando..." : "Próxima Etapa"}
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
-                  </Link>
-                  <Button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Salvando..." : "Próxima Etapa"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
-    </div>
+      </AdminLayout>
+    </AuthGuard>
   );
 }
+
