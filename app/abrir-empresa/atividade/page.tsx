@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Select from "react-select";
+import Select, { MultiValue, SingleValue } from "react-select";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,6 +169,13 @@ export default function AtividadePage() {
     );
   });
 
+  // exemplo de handler
+  const handleSelectChange = (
+    sel: SingleValue<CnaeOption> | MultiValue<CnaeOption> | null
+  ) => {
+    setSelectedCnaes(Array.isArray(sel) ? [...sel] : sel ? [sel] : []);
+  };
+
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -213,11 +220,7 @@ export default function AtividadePage() {
                       isMulti
                       options={filteredCnaes}
                       value={selectedCnaes}
-                      onChange={(sel) =>
-                        Array.isArray(sel)
-                          ? setSelectedCnaes(sel)
-                          : setSelectedCnaes(sel ? [sel] : [])
-                      }
+                      onChange={handleSelectChange}
                       className="z-50"
                       placeholder="Selecione uma ou mais atividades"
                     />

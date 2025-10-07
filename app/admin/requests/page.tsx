@@ -163,6 +163,43 @@ export default function RequestsPage() {
             </AlertDescription>
           </Alert>
 
+{/* Summary Cards */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Total de Clientes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-600">{mockRequests.length}</div>
+                <p className="text-sm text-gray-600 mt-1">Clientes cadastrados</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Processos Ativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-600">
+                  {mockRequests.filter((c: { status: string }) => c.status === "Em andamento").length}
+                </div>
+                <p className="text-sm text-gray-600 mt-1">Em andamento</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Concluídos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">
+                  {mockRequests.filter((c) => c.status === "Concluído").length}
+                </div>
+                <p className="text-sm text-gray-600 mt-1">Processos finalizados</p>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Filters */}
           <Card className="border-0 shadow-lg">
             <CardContent className="pt-6">

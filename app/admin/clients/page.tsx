@@ -87,43 +87,6 @@ export default function ClientsPage() {
             </Link>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Total de Clientes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">{clients.length}</div>
-                <p className="text-sm text-gray-600 mt-1">Clientes cadastrados</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Processos Ativos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-orange-600">
-                  {clients.filter((c) => c.status === "Em andamento").length}
-                </div>
-                <p className="text-sm text-gray-600 mt-1">Em andamento</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-lg">Concluídos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">
-                  {clients.filter((c) => c.status === "Concluído").length}
-                </div>
-                <p className="text-sm text-gray-600 mt-1">Processos finalizados</p>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Filters and Search */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
