@@ -5,10 +5,9 @@ import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Filter } from "lucide-react"
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react"
 import Link from "next/link"
 
 // Mock data for clients
@@ -48,19 +47,6 @@ const clients = [
 ]
 
 export default function ClientsPage() {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Concluído":
-        return "bg-green-100 text-green-700"
-      case "Em andamento":
-        return "bg-blue-100 text-blue-700"
-      case "Pendente Aprovação":
-        return "bg-yellow-100 text-yellow-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
-  }
-
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -92,6 +78,8 @@ export default function ClientsPage() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input placeholder="Buscar por nome, email ou empresa..." className="pl-10" />
                   </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -109,8 +97,6 @@ export default function ClientsPage() {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Empresa</TableHead>
                       <TableHead>CNPJ</TableHead>
-                      <TableHead>Processo</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead>Data</TableHead>
                       <TableHead className="w-[50px]">Ações</TableHead>
                     </TableRow>
@@ -170,4 +156,3 @@ export default function ClientsPage() {
     </AuthGuard>
   )
 }
-
