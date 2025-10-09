@@ -19,8 +19,6 @@ const clients = [
     email: "joao@empresa.com",
     company: "Silva Comércio LTDA",
     cnpj: "12.345.678/0001-90",
-    processType: "Abertura de CNPJ",
-    status: "Em andamento",
     createdAt: "2024-01-15",
   },
   {
@@ -29,8 +27,6 @@ const clients = [
     email: "maria@santos.com",
     company: "Santos & Associados",
     cnpj: "98.765.432/0001-10",
-    processType: "Alteração Contratual",
-    status: "Pendente Aprovação",
     createdAt: "2024-01-10",
   },
   {
@@ -39,8 +35,6 @@ const clients = [
     email: "pedro@costa.com",
     company: "Costa Transportes",
     cnpj: "11.222.333/0001-44",
-    processType: "Fechamento de CNPJ",
-    status: "Concluído",
     createdAt: "2024-01-05",
   },
   {
@@ -49,8 +43,6 @@ const clients = [
     email: "ana@oliveira.com",
     company: "Oliveira Consultoria",
     cnpj: "55.666.777/0001-88",
-    processType: "Abertura de CNPJ",
-    status: "Em andamento",
     createdAt: "2024-01-20",
   },
 ]
@@ -100,12 +92,6 @@ export default function ClientsPage() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input placeholder="Buscar por nome, email ou empresa..." className="pl-10" />
                   </div>
-                </div>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
@@ -143,12 +129,6 @@ export default function ClientsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="font-mono text-sm">{client.cnpj}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{client.processType}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-gray-500">
