@@ -3,12 +3,15 @@
 import { AuthGuard } from "@/components/auth-guard"
 import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react"
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Check, ChevronsUpDown } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 // Mock data for clients
 const clients = [
@@ -47,6 +50,17 @@ const clients = [
 ]
 
 export default function ClientsPage() {
+  const [open, setOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState("")
+
+  const filteredClients = clients.filter((client) =>
+    selectedClient
+      ? client.name.toLowerCase().includes(selectedClient.toLowerCase()) ||
+        client.email.toLowerCase().includes(selectedClient.toLowerCase()) ||
+        client.company.toLowerCase().includes(selectedClient.toLowerCase())
+      : true
+  )
+
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -65,28 +79,66 @@ export default function ClientsPage() {
             </Link>
           </div>
 
-          {/* Filters and Search */}
+          {/* Filters with CNAE-style search */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
               <CardDescription>Encontre clientes específicos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Buscar por nome, email ou empresa..." className="pl-10" />
-                  </div>
-                </div>
-              </div>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                  >
+                    {selectedClient
+                      ? filteredClients.find((client) =>
+                          client.name.toLowerCase().includes(selectedClient.toLowerCase())
+                        )?.name
+                      : "Selecione ou busque um cliente"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Digite o nome, e-mail ou empresa..."
+                      onValueChange={setSelectedClient}
+                    />
+                    <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {clients.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.name}
+                          onSelect={(value) => {
+                            setSelectedClient(value)
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedClient === client.name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {client.name} — {client.company}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
 
           {/* Clients Table */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>Lista de Clientes ({clients.length})</CardTitle>
+              <CardTitle>Lista de Clientes ({filteredClients.length})</CardTitle>
               <CardDescription>Todos os clientes cadastrados no sistema</CardDescription>
             </CardHeader>
             <CardContent>
@@ -102,7 +154,7 @@ export default function ClientsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clients.map((client) => (
+                    {filteredClients.map((client) => (
                       <TableRow key={client.id}>
                         <TableCell>
                           <div>
