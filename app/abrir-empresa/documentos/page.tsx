@@ -1,141 +1,145 @@
 "use client"
-
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle, FileText, RefreshCw } from "lucide-react"
-import documents from "@/lib/documents" 
+import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 export default function DocumentosPage() {
-  const [documentos, setDocumentos] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [editing, setEditing] = useState<{ id: number; nome: string } | null>(null)
+  const router = useRouter()
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({})
 
-  // Busca os documentos existentes
-  const fetchDocumentos = async () => {
+  // Documentos obrigatórios
+  const requiredDocuments = ["Cópia do RG ou CIN", "Comprovante de Residência", "Foto 3x4 recente"]
+
+  // Atualiza o arquivo selecionado
+  const handleFileChange = (document: string, file: File | null) => {
+    setUploadedFiles((prev) => ({
+      ...prev,
+      [document]: file,
+    }))
+  }
+
+  // Envia os documentos
+  const handleSubmit = async () => {
+    setError("")
+    setIsLoading(true)
+
+    const allUploaded = requiredDocuments.every((doc) => uploadedFiles[doc])
+    if (!allUploaded) {
+      setError("Por favor, faça upload de todos os documentos obrigatórios.")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      setLoading(true)
-      const res = await documents.get("/documentos")
-      setDocumentos(res.data)
+      const formData = new FormData()
+      requiredDocuments.forEach((doc) => {
+        if (uploadedFiles[doc]) {
+          formData.append("documents", uploadedFiles[doc] as File, doc)
+        }
+      })
+
+      // Envio real (ajuste quando tiver o backend)
+      // await fetch("/api/upload", { method: "POST", body: formData })
+
+      router.push("/abrir-empresa/concluido") // destino final do cliente
     } catch (err) {
-      setError("Erro ao carregar tipos de documentos.")
+      console.error(err)
+      setError("Erro ao enviar os documentos. Tente novamente.")
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }
-
-  useEffect(() => {
-    fetchDocumentos()
-  }, [])
-
-  // Atualiza nome do documento via PATCH
-  const handleUpdate = async (id: number, novoNome: string) => {
-    try {
-      setError(null)
-      setSuccess(null)
-      await documents.patch(`/documentos`, { nome: novoNome })
-      setSuccess("Tipo de documento atualizado com sucesso!")
-      setEditing(null)
-      fetchDocumentos()
-    } catch (err) {
-      setError("Erro ao atualizar tipo de documento.")
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="animate-spin w-6 h-6 text-blue-500" />
-        <span className="ml-2 text-gray-700">Carregando documentos...</span>
-      </div>
-    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <Card className="shadow-xl border-0">
-          <CardHeader>
-            <CardTitle className="text-2xl">Gerenciar Tipos de Documentos</CardTitle>
-            <CardDescription>Atualize as informações dos documentos cadastrados no sistema</CardDescription>
-          </CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-transparent">
+        <div className="container mx-auto px-4 py-4 flex justify-center">
+          <Image
+            src="/Facilitaj.png"
+            alt="Logo"
+            width={120}
+            height={120}
+            className="object-contain"
+          />
+        </div>
+      </header>
 
-          <CardContent className="space-y-6">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-xl border-0">
+            <CardHeader>
+              <CardTitle className="text-2xl">Envio de Documentos</CardTitle>
+              <CardDescription>
+                Faça o upload dos documentos necessários para iniciar seu processo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert className="mb-6" variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-            {success && (
-              <Alert className="bg-green-50 border-green-500 text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            )}
+              <div className="space-y-4">
+                {requiredDocuments.map((document, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-gray-400" />
+                        <span className="font-medium">{document}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          id={`file-${index}`}
+                          style={{ display: "none" }}
+                          onChange={(e) =>
+                            handleFileChange(document, e.target.files ? e.target.files[0] : null)
+                          }
+                        />
+                        <label htmlFor={`file-${index}`}>
+                          <Button asChild variant="outline" size="sm">
+                            <span>
+                              <Upload className="w-4 h-4 mr-2" />
+                              {uploadedFiles[document] ? "Trocar arquivo" : "Upload"}
+                            </span>
+                          </Button>
+                        </label>
 
-            {documentos.length === 0 ? (
-              <p className="text-gray-600 text-center">Nenhum tipo de documento encontrado.</p>
-            ) : (
-              documentos.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="border rounded-lg p-4 flex items-center justify-between bg-white shadow-sm"
+                        {uploadedFiles[document] && (
+                          <span className="text-green-600 flex items-center text-sm">
+                            <CheckCircle className="w-5 h-5 mr-1" />
+                            Enviado
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end pt-6">
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={isLoading || Object.keys(uploadedFiles).length < requiredDocuments.length}
                 >
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-5 h-5 text-gray-400" />
-                    {editing?.id === doc.id ? (
-                      <Input
-                        value={editing?.nome || ""}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEditing((prev) => prev ? { ...prev, nome: e.target.value }: prev )
-                        }
-                        className="w-64"
-                      />
-                    ) : (
-                      <span className="font-medium">{doc.nome}</span>
-                    )}
-                  </div>
-
-                  <div className="flex space-x-2">
-                    {editing?.id === doc.id ? (
-                      <>
-                        <Button
-                          onClick={() => {
-                            if (editing) handleUpdate(doc.id, editing.nome)}}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          size="sm"
-                        >
-                          Salvar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditing(null)}
-                        >
-                          Cancelar
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditing({ id: doc.id, nome: doc.nome })}
-                      >
-                        Editar
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                  {isLoading ? "Enviando..." : "Finalizar Envio"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

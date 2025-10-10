@@ -1,17 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Filter } from "lucide-react"
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react"
 import Link from "next/link"
 
-// Mock data for clients
+// Mock data
 const clients = [
   {
     id: "1",
@@ -19,8 +19,6 @@ const clients = [
     email: "joao@empresa.com",
     company: "Silva Comércio LTDA",
     cnpj: "12.345.678/0001-90",
-    processType: "Abertura de CNPJ",
-    status: "Em andamento",
     createdAt: "2024-01-15",
   },
   {
@@ -29,8 +27,6 @@ const clients = [
     email: "maria@santos.com",
     company: "Santos & Associados",
     cnpj: "98.765.432/0001-10",
-    processType: "Alteração Contratual",
-    status: "Pendente Aprovação",
     createdAt: "2024-01-10",
   },
   {
@@ -39,8 +35,6 @@ const clients = [
     email: "pedro@costa.com",
     company: "Costa Transportes",
     cnpj: "11.222.333/0001-44",
-    processType: "Fechamento de CNPJ",
-    status: "Concluído",
     createdAt: "2024-01-05",
   },
   {
@@ -49,31 +43,23 @@ const clients = [
     email: "ana@oliveira.com",
     company: "Oliveira Consultoria",
     cnpj: "55.666.777/0001-88",
-    processType: "Abertura de CNPJ",
-    status: "Em andamento",
     createdAt: "2024-01-20",
   },
 ]
 
 export default function ClientsPage() {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Concluído":
-        return "bg-green-100 text-green-700"
-      case "Em andamento":
-        return "bg-blue-100 text-blue-700"
-      case "Pendente Aprovação":
-        return "bg-yellow-100 text-yellow-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
-  }
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredClients = clients.filter((client) =>
+    [client.name, client.email, client.company, client.cnpj]
+      .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
 
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
         <div className="space-y-8">
-          {/* Page Header */}
+          {/* Cabeçalho da Página */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Clientes</h1>
@@ -87,32 +73,29 @@ export default function ClientsPage() {
             </Link>
           </div>
 
-          {/* Filters and Search */}
+          {/* Filtros e Pesquisa */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
               <CardDescription>Encontre clientes específicos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Buscar por nome, email ou empresa..." className="pl-10" />
-                  </div>
-                </div>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por nome, email, empresa ou CNPJ..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Clients Table */}
+          {/* Tabela de Clientes */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>Lista de Clientes ({clients.length})</CardTitle>
+              <CardTitle>Lista de Clientes ({filteredClients.length})</CardTitle>
               <CardDescription>Todos os clientes cadastrados no sistema</CardDescription>
             </CardHeader>
             <CardContent>
@@ -123,63 +106,56 @@ export default function ClientsPage() {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Empresa</TableHead>
                       <TableHead>CNPJ</TableHead>
-                      <TableHead>Processo</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead>Data</TableHead>
                       <TableHead className="w-[50px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-gray-900">{client.name}</div>
-                            <div className="text-sm text-gray-500">{client.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{client.company}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-mono text-sm">{client.cnpj}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{client.processType}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-gray-500">
-                            {new Date(client.createdAt).toLocaleDateString("pt-BR")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="w-4 h-4 mr-2" />
-                                Visualizar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                    {filteredClients.length > 0 ? (
+                      filteredClients.map((client) => (
+                        <TableRow key={client.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium text-gray-900">{client.name}</div>
+                              <div className="text-sm text-gray-500">{client.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{client.company}</TableCell>
+                          <TableCell className="font-mono text-sm">{client.cnpj}</TableCell>
+                          <TableCell>
+                            <div className="text-sm text-gray-500">
+                              {new Date(client.createdAt).toLocaleDateString("pt-BR")}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Eye className="w-4 h-4 mr-2" /> Visualizar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Edit className="w-4 h-4 mr-2" /> Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-gray-500 py-6">
+                          Nenhum cliente encontrado.
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -190,4 +166,3 @@ export default function ClientsPage() {
     </AuthGuard>
   )
 }
-
