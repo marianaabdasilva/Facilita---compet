@@ -1,59 +1,83 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { AuthGuard } from "@/components/auth-guard"
-import { AdminLayout } from "@/components/admin-layout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { AuthGuard } from "@/components/auth-guard";
+import { AdminLayout } from "@/components/admin-layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react";
+import Link from "next/link";
 
-// Mock data
-const clients = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@empresa.com",
-    company: "Silva Comércio LTDA",
-    cnpj: "12.345.678/0001-90",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria@santos.com",
-    company: "Santos & Associados",
-    cnpj: "98.765.432/0001-10",
-    createdAt: "2024-01-10",
-  },
-  {
-    id: "3",
-    name: "Pedro Costa",
-    email: "pedro@costa.com",
-    company: "Costa Transportes",
-    cnpj: "11.222.333/0001-44",
-    createdAt: "2024-01-05",
-  },
-  {
-    id: "4",
-    name: "Ana Oliveira",
-    email: "ana@oliveira.com",
-    company: "Oliveira Consultoria",
-    cnpj: "55.666.777/0001-88",
-    createdAt: "2024-01-20",
-  },
-]
+// Tipagem do cliente
+interface Client {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  cnpj: string;
+  createdAt: string;
+}
+
+// bagui para formatar os numeros da pesquisa do cnpj
+function formatCNPJ(value: string) {
+  const digits = value.replace(/\D/g, "");
+  let formatted = digits;
+
+  if (digits.length > 2) formatted = digits.slice(0, 2) + "." + digits.slice(2);
+  if (digits.length > 5) formatted = formatted.slice(0, 6) + "." + formatted.slice(6);
+  if (digits.length > 8) formatted = formatted.slice(0, 10) + "/" + formatted.slice(10);
+  if (digits.length > 12) formatted = formatted.slice(0, 15) + "-" + formatted.slice(15, 17);
+
+  return formatted;
+}
 
 export default function ClientsPage() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const [clients, setClients] = useState<Client[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Usuário não autenticado.");
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch("https://projeto-back-ten.vercel.app/clientes", {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Erro ao buscar clientes");
+        }
+
+        const data: Client[] = await response.json();
+        setClients(data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
+  // filtrar os clientes com a pesquisa
   const filteredClients = clients.filter((client) =>
     [client.name, client.email, client.company, client.cnpj]
       .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  );
 
   return (
     <AuthGuard requiredRole="admin">
@@ -73,7 +97,7 @@ export default function ClientsPage() {
             </Link>
           </div>
 
-          {/* Filtros e Pesquisa */}
+          {/* Pesquisa */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
@@ -86,83 +110,99 @@ export default function ClientsPage() {
                   placeholder="Buscar por nome, email, empresa ou CNPJ..."
                   className="pl-10"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    value = value.replace(/^company/i, "empresa");
+
+                    // Se for apenas números, aplica a máscara de CNPJ
+                    if (/^\d+$/.test(value.replace(/\D/g, ""))) {
+                      value = formatCNPJ(value);
+                    }
+
+                    setSearchTerm(value);
+                  }}
                 />
               </div>
             </CardContent>
           </Card>
 
+          {/* Mensagens de Loading ou Erro */}
+          {loading && <p className="text-gray-500">Carregando clientes...</p>}
+          {error && <p className="text-red-600">{error}</p>}
+
           {/* Tabela de Clientes */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Lista de Clientes ({filteredClients.length})</CardTitle>
-              <CardDescription>Todos os clientes cadastrados no sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>CNPJ</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead className="w-[50px]">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredClients.length > 0 ? (
-                      filteredClients.map((client) => (
-                        <TableRow key={client.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{client.name}</div>
-                              <div className="text-sm text-gray-500">{client.email}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{client.company}</TableCell>
-                          <TableCell className="font-mono text-sm">{client.cnpj}</TableCell>
-                          <TableCell>
-                            <div className="text-sm text-gray-500">
-                              {new Date(client.createdAt).toLocaleDateString("pt-BR")}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Eye className="w-4 h-4 mr-2" /> Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Edit className="w-4 h-4 mr-2" /> Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+          {!loading && !error && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Lista de Clientes ({filteredClients.length})</CardTitle>
+                <CardDescription>Todos os clientes cadastrados no sistema</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>CNPJ</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead className="w-[50px]">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClients.length > 0 ? (
+                        filteredClients.map((client) => (
+                          <TableRow key={client.id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium text-gray-900">{client.name}</div>
+                                <div className="text-sm text-gray-500">{client.email}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{client.company}</TableCell>
+                            <TableCell className="font-mono text-sm">{client.cnpj}</TableCell>
+                            <TableCell>
+                              <div className="text-sm text-gray-500">
+                                {new Date(client.createdAt).toLocaleDateString("pt-BR")}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    <Eye className="w-4 h-4 mr-2" /> Visualizar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Edit className="w-4 h-4 mr-2" /> Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600">
+                                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-gray-500 py-6">
+                            Nenhum cliente encontrado.
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center text-gray-500 py-6">
-                          Nenhum cliente encontrado.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </AdminLayout>
     </AuthGuard>
-  )
+  );
 }
