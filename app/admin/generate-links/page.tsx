@@ -12,8 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { LinkIcon, Copy, CheckCircle, Trash2, Eye } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { LinkIcon, Copy, CheckCircle, Trash2, Eye, Search } from "lucide-react"
 
 interface ClientesOption {
   value: string
@@ -24,7 +23,7 @@ interface ClientesOption {
 interface ProcessosOption {
   value: string
   label: string
-  id_cliente: number
+  id_processo: number
 }
 
 interface GeneratedLink {
@@ -40,41 +39,43 @@ interface GeneratedLink {
 
 export default function GenerateLinksPage() {
   const [allClientes, setAllClientes] = useState<ClientesOption[]>([])
-  const [allProcessos, setAllProcessos] = useState<ProcessosOption[]>([]) // ✅ ADICIONADO
+  const [allProcessos, setAllProcessos] = useState<ProcessosOption[]>([])
   const [selectedClient, setSelectedClient] = useState<ClientesOption | null>(null)
-  const [selectedProcess, setSelectedProcess] = useState<ProcessosOption | null>(null) // ✅ ALTERADO
+  const [selectedProcess, setSelectedProcess] = useState<ProcessosOption | null>(null)
   const [generatedLinks, setGeneratedLinks] = useState<GeneratedLink[]>([])
   const [generatedLink, setGeneratedLink] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
-  const [searchCliente, setSearchCliente] = useState("")
+  const [searchLink, setSearchLink] = useState("") // 🔍 busca de links gerados
 
-  // Buscar clientes da API
+  // Buscar clientes
   const fetchClientes = async () => {
     try {
       const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes")
       const data: Array<{ id_cliente: number; nome: string }> = resp.data
-      const opts: ClientesOption[] = data.map((c) => ({
-        value: String(c.id_cliente),
-        label: c.nome,
-        id_cliente: c.id_cliente,
-      }))
-      setAllClientes(opts)
+      setAllClientes(
+        data.map((c) => ({
+          value: String(c.id_cliente),
+          label: c.nome,
+          id_cliente: c.id_cliente,
+        }))
+      )
     } catch (err) {
       console.error("Erro ao buscar clientes:", err)
     }
   }
 
-  // Buscar processos da API
+  // Buscar tipos de processo
   const fetchProcessos = async () => {
     try {
       const resp = await axios.get("https://projeto-back-ten.vercel.app/tiposprocessos")
       const data: Array<{ id_processo: number; nome: string }> = resp.data
-      const opts: ProcessosOption[] = data.map((c) => ({
-        value: String(c.id_processo),
-        label: c.nome,
-        id_cliente: c.id_processo,
-      }))
-      setAllProcessos(opts)
+      setAllProcessos(
+        data.map((c) => ({
+          value: String(c.id_processo),
+          label: c.nome,
+          id_processo: c.id_processo,
+        }))
+      )
     } catch (err) {
       console.error("Erro ao buscar processos:", err)
     }
@@ -88,7 +89,6 @@ export default function GenerateLinksPage() {
   // Gerar link
   const handleGenerateLink = async () => {
     if (!selectedClient || !selectedProcess) return
-
     setIsGenerating(true)
 
     setTimeout(() => {
@@ -96,7 +96,7 @@ export default function GenerateLinksPage() {
       const newLink: GeneratedLink = {
         id,
         clientName: selectedClient.label,
-        processType: selectedProcess.label, // ✅ AGORA PEGA O NOME CORRETO
+        processType: selectedProcess.label,
         link: `https://facilita.com/abrir-empresa/documentos?id=${id}`,
         status: "Ativo",
         createdAt: new Date().toISOString(),
@@ -110,9 +110,7 @@ export default function GenerateLinksPage() {
     }, 1000)
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+  const copyToClipboard = (text: string) => navigator.clipboard.writeText(text)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -127,9 +125,15 @@ export default function GenerateLinksPage() {
     }
   }
 
-  const filteredClientes = allClientes.filter((c) =>
-    c.label.toLowerCase().includes(searchCliente.toLowerCase())
-  )
+  // 🔎 Filtrar links gerados
+  const filteredLinks = generatedLinks.filter((link) => {
+    const term = searchLink.toLowerCase()
+    return (
+      link.clientName.toLowerCase().includes(term) ||
+      link.processType.toLowerCase().includes(term) ||
+      link.status.toLowerCase().includes(term)
+    )
+  })
 
   const handleClientChange = (option: SingleValue<ClientesOption>) => {
     setSelectedClient(option)
@@ -142,138 +146,136 @@ export default function GenerateLinksPage() {
           {/* Cabeçalho */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Geração de Links</h1>
-            <p className="text-gray-600 mt-1">
-              Crie links personalizados para upload de documentos
-            </p>
+            <p className="text-gray-600 mt-1">Crie links personalizados para upload de documentos</p>
           </div>
+
           {/* Estatísticas */}
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Suas Estatísticas</h2>
             <div className="grid md:grid-cols-4 gap-6">
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Links Ativos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    {generatedLinks.filter((l) => l.status === "Ativo").length}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Links Usados</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {generatedLinks.filter((l) => l.status === "Usado").length}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Total Gerados</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{generatedLinks.length}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Taxa de Uso</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {generatedLinks.length
+              {[
+                {
+                  title: "Links Ativos",
+                  color: "text-green-600",
+                  value: generatedLinks.filter((l) => l.status === "Ativo").length,
+                },
+                {
+                  title: "Links Usados",
+                  color: "text-blue-600",
+                  value: generatedLinks.filter((l) => l.status === "Usado").length,
+                },
+                { title: "Total Gerados", color: "text-green-600", value: generatedLinks.length },
+                {
+                  title: "Taxa de Uso",
+                  color: "text-blue-600",
+                  value: `${
+                    generatedLinks.length
                       ? Math.round(
                           (generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100
                         )
-                      : 0}
-                    %
-                  </div>
-                </CardContent>
-              </Card>
+                      : 0
+                  }%`,
+                },
+              ].map((stat, i) => (
+                <Card key={i} className="border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{stat.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
-          {/* Formulário e Tabela */}
-          <div className="grid lg:grid-cols-3 gap-8"></div>
-
+          {/* Seção principal */}
+          <div className="grid lg:grid-cols-3 gap-8">
             {/* Formulário */}
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <LinkIcon className="w-5 h-5 mr-2" />
-                      Gerar Novo Link
-                    </CardTitle>
-                    <CardDescription>Selecione o cliente e tipo de processo</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Cliente */}
-                    <div className="space-y-2">
-                      <Label>Cliente</Label>
-                      <Select
-                        options={filteredClientes}
-                        value={selectedClient}
-                        onChange={handleClientChange}
-                        onInputChange={(val) => setSearchCliente(val)}
-                        placeholder="Selecione um cliente"
-                        className="z-50"
-                      />
-                    </div>
+            <div className="lg:col-span-1">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <LinkIcon className="w-5 h-5 mr-2" /> Gerar Novo Link
+                  </CardTitle>
+                  <CardDescription>Selecione o cliente e tipo de processo</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Select de clientes */}
+                  <div className="space-y-2">
+                    <Label>Cliente</Label>
+                    <Select
+                      options={allClientes}
+                      value={selectedClient}
+                      onChange={handleClientChange}
+                      placeholder="Selecione um cliente"
+                      className="z-50"
+                    />
+                  </div>
 
-                    {/* Processo */}
-                    <div className="space-y-2">
-                      <Label>Tipo de Processo</Label>
-                      <Select
-                        options={allProcessos} // ✅ AGORA USA OS PROCESSOS DA API
-                        value={selectedProcess}
-                        onChange={(opt) => setSelectedProcess(opt)}
-                        placeholder="Selecione o tipo de processo"
-                        className="z-50"
-                      />
-                    </div>
+                  {/* Tipo de processo */}
+                  <div className="space-y-2">
+                    <Label>Tipo de Processo</Label>
+                    <Select
+                      options={allProcessos}
+                      value={selectedProcess}
+                      onChange={(opt) => setSelectedProcess(opt)}
+                      placeholder="Selecione o tipo de processo"
+                      className="z-50"
+                    />
+                  </div>
 
-                    <Button
-                      onClick={handleGenerateLink}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={!selectedClient || !selectedProcess || isGenerating}
-                    >
-                      {isGenerating ? "Gerando..." : "Gerar Link"}
-                    </Button>
+                  <Button
+                    onClick={handleGenerateLink}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={!selectedClient || !selectedProcess || isGenerating}
+                  >
+                    {isGenerating ? "Gerando..." : "Gerar Link"}
+                  </Button>
 
-                    {generatedLink && (
-                      <Alert>
-                        <CheckCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          <div className="space-y-2">
-                            <p className="font-medium">Link gerado com sucesso!</p>
-                            <div className="flex items-center space-x-2">
-                              <Input value={generatedLink} readOnly className="text-xs" />
-                              <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </div>
+                  {generatedLink && (
+                    <Alert>
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <p className="font-medium">Link gerado com sucesso!</p>
+                          <div className="flex items-center space-x-2">
+                            <Input value={generatedLink} readOnly className="text-xs" />
+                            <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
+                              <Copy className="w-3 h-3" />
+                            </Button>
                           </div>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-              {/* Tabela de Links */}
-              <div className="lg:col-span-2">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Links Gerados</CardTitle>
-                    <CardDescription>Histórico de links criados</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 🔍 Campo de pesquisa + tabela */}
+            <div className="lg:col-span-2">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle>Links Gerados</CardTitle>
+                  <CardDescription>Histórico de links criados</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Pesquisar Links Gerados</Label>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Digite nome do cliente, tipo de processo ou status..."
+                          value={searchLink}
+                          onChange={(e) => setSearchLink(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tabela */}
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -287,19 +289,15 @@ export default function GenerateLinksPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {generatedLinks.map((link) => (
+                          {filteredLinks.map((link) => (
                             <TableRow key={link.id}>
                               <TableCell>{link.clientName}</TableCell>
                               <TableCell>{link.processType}</TableCell>
                               <TableCell>
                                 <Badge className={getStatusColor(link.status)}>{link.status}</Badge>
                               </TableCell>
-                              <TableCell>
-                                {new Date(link.createdAt).toLocaleDateString("pt-BR")}
-                              </TableCell>
-                              <TableCell>
-                                {new Date(link.expiresAt).toLocaleDateString("pt-BR")}
-                              </TableCell>
+                              <TableCell>{new Date(link.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                              <TableCell>{new Date(link.expiresAt).toLocaleDateString("pt-BR")}</TableCell>
                               <TableCell>
                                 <div className="flex items-center space-x-2">
                                   <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
@@ -315,15 +313,25 @@ export default function GenerateLinksPage() {
                               </TableCell>
                             </TableRow>
                           ))}
+                          {filteredLinks.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-gray-500 py-6">
+                                Nenhum link encontrado.
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </TableBody>
                       </Table>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </AdminLayout>
-      </AuthGuard>
-    );
-  }
+        </div>
+      </AdminLayout>
+    </AuthGuard>
+  )
+}
+
+
