@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,45 +21,45 @@ import {
   ExternalLink,
 } from "lucide-react"
 
-// Mock data for admin dashboard
-const stats = {
-  totalClients: 156,
-  totalCNPJs: 203,
-  activeProcesses: 45,
-  completedThisMonth: 28,
-  revenue: 125000,
-  pendingRequests: 8, // changed from pendingApprovals to pendingRequests
-}
-
-const recentRequests = [
-  // changed from recentProcesses to recentRequests
-  {
-    id: "REQ-001",
-    clientName: "João Silva",
-    company: "Silva Comércio LTDA",
-    type: "Abertura de CNPJ",
-    status: "Aguardando Link", // updated status to reflect new flow
-    createdAt: "2024-01-22",
-  },
-  {
-    id: "REQ-002",
-    clientName: "Maria Santos",
-    company: "Santos & Associados",
-    type: "Alteração Contratual",
-    status: "Link Enviado", // updated status to reflect new flow
-    createdAt: "2024-01-21",
-  },
-  {
-    id: "REQ-003",
-    clientName: "Pedro Costa",
-    company: "Costa Transportes",
-    type: "Fechamento de CNPJ",
-    status: "Documentos Recebidos", // updated status to reflect new flow
-    createdAt: "2024-01-20",
-  },
-]
-
 export default function AdminDashboard() {
+  // Estado para os stats do backend
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    totalCNPJs: 0,
+    activeProcesses: 0,
+    completedThisMonth: 0,
+    pendingRequests: 0,
+  })
+
+  // Requisições recentes ainda mockadas
+  const recentRequests = [
+    {
+      id: "REQ-001",
+      clientName: "João Silva",
+      company: "Silva Comércio LTDA",
+      type: "Abertura de CNPJ",
+      status: "Aguardando Link",
+      createdAt: "2024-01-22",
+    },
+    {
+      id: "REQ-002",
+      clientName: "Maria Santos",
+      company: "Santos & Associados",
+      type: "Alteração Contratual",
+      status: "Link Enviado",
+      createdAt: "2024-01-21",
+    },
+    {
+      id: "REQ-003",
+      clientName: "Pedro Costa",
+      company: "Costa Transportes",
+      type: "Fechamento de CNPJ",
+      status: "Documentos Recebidos",
+      createdAt: "2024-01-20",
+    },
+  ]
+
+  // Funções auxiliares para cores e ícones
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Documentos Recebidos":
@@ -84,6 +85,35 @@ export default function AdminDashboard() {
         return <AlertCircle className="w-4 h-4" />
     }
   }
+
+  // Fetch backend para os cards (sem exibir erro)
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("https://projeto-back-ten.vercel.app/dashboard", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setStats({
+            totalClients: data.totalClients,
+            totalCNPJs: data.totalCNPJs,
+            activeProcesses: data.activeProcesses,
+            completedThisMonth: data.completedThisMonth,
+            pendingRequests: data.pendingRequests,
+          })
+        }
+        // Se houver erro do backend, ele já envia mensagem detalhada
+      } catch {
+        // Nada a fazer aqui, backend já envia mensagens
+      }
+    }
+
+    fetchStats()
+  }, [])
 
   return (
     <AuthGuard requiredRole="admin">
