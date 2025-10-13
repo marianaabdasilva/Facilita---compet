@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Search, MoreHorizontal, Eye, Plus } from "lucide-react";
 import Link from "next/link";
 
-// Tipagem do cliente
 interface Client {
   id: string;
   name: string;
@@ -21,16 +21,13 @@ interface Client {
   createdAt: string;
 }
 
-// bagui para formatar os numeros da pesquisa do cnpj
 function formatCNPJ(value: string) {
   const digits = value.replace(/\D/g, "");
   let formatted = digits;
-
   if (digits.length > 2) formatted = digits.slice(0, 2) + "." + digits.slice(2);
   if (digits.length > 5) formatted = formatted.slice(0, 6) + "." + formatted.slice(6);
   if (digits.length > 8) formatted = formatted.slice(0, 10) + "/" + formatted.slice(10);
   if (digits.length > 12) formatted = formatted.slice(0, 15) + "-" + formatted.slice(15, 17);
-
   return formatted;
 }
 
@@ -39,6 +36,8 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null); // 👈 cliente selecionado
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // 👈 controle do modal
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -73,7 +72,6 @@ export default function ClientsPage() {
     fetchClients();
   }, []);
 
-  // filtrar os clientes com a pesquisa
   const filteredClients = clients.filter((client) =>
     [client.name, client.email, client.company, client.cnpj]
       .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -83,7 +81,7 @@ export default function ClientsPage() {
     <AuthGuard requiredRole="admin">
       <AdminLayout>
         <div className="space-y-8">
-          {/* Cabeçalho da Página */}
+          {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Clientes</h1>
@@ -112,13 +110,9 @@ export default function ClientsPage() {
                   value={searchTerm}
                   onChange={(e) => {
                     let value = e.target.value;
-                    value = value.replace(/^company/i, "empresa");
-
-                    // Se for apenas números, aplica a máscara de CNPJ
                     if (/^\d+$/.test(value.replace(/\D/g, ""))) {
                       value = formatCNPJ(value);
                     }
-
                     setSearchTerm(value);
                   }}
                 />
@@ -126,11 +120,11 @@ export default function ClientsPage() {
             </CardContent>
           </Card>
 
-          {/* Mensagens de Loading ou Erro */}
+          {/* Estado de carregamento/erro */}
           {loading && <p className="text-gray-500">Carregando clientes...</p>}
           {error && <p className="text-red-600">{error}</p>}
 
-          {/* Tabela de Clientes */}
+          {/* Tabela */}
           {!loading && !error && (
             <Card className="border-0 shadow-lg">
               <CardHeader>
@@ -174,14 +168,13 @@ export default function ClientsPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedClient(client);
+                                      setIsDialogOpen(true);
+                                    }}
+                                  >
                                     <Eye className="w-4 h-4 mr-2" /> Visualizar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Edit className="w-4 h-4 mr-2" /> Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-600">
-                                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -202,6 +195,32 @@ export default function ClientsPage() {
             </Card>
           )}
         </div>
+
+        {/* ✅ Modal de visualização */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Cliente</DialogTitle>
+              <DialogDescription>Informações completas do cliente selecionado</DialogDescription>
+            </DialogHeader>
+
+            {selectedClient && (
+              <div className="space-y-3 mt-2">
+                <p><strong>Nome:</strong> {selectedClient.name}</p>
+                <p><strong>Email:</strong> {selectedClient.email}</p>
+                <p><strong>Empresa:</strong> {selectedClient.company}</p>
+                <p><strong>CNPJ:</strong> {selectedClient.cnpj}</p>
+                <p><strong>Criado em:</strong> {new Date(selectedClient.createdAt).toLocaleDateString("pt-BR")}</p>
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+                Fechar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </AdminLayout>
     </AuthGuard>
   );
