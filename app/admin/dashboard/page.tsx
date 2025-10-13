@@ -96,24 +96,32 @@ export default function AdminDashboard() {
         const res = await fetch("https://projeto-back-ten.vercel.app/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         })
+
         if (res.ok) {
           const data = await res.json()
+          console.log("Dados da API:", data)
+
           setStats({
-            totalClients: data.totalClients,
-            totalCNPJs: data.totalCNPJs,
-            activeProcesses: data.activeProcesses,
-            completedThisMonth: data.completedThisMonth,
-            pendingRequests: data.pendingRequests,
+            totalClients: data.totalClientes ?? 0,
+            totalCNPJs: data.totalCNPJS ?? 0,
+            activeProcesses: data.totalAtivos ?? 0,
+            completedThisMonth: data.completedThisMonth ?? 0,
+            pendingRequests: data.totalPendentes ?? 0,
           })
         }
-        // Se houver erro do backend, ele já envia mensagem detalhada
-      } catch {
-        // Nada a fazer aqui, backend já envia mensagens
+      } catch (error) {
+        console.error("Erro ao buscar estatísticas:", error)
       }
     }
 
     fetchStats()
   }, [])
+
+  // Se quiser debugar mudanças no estado:
+  useEffect(() => {
+    console.log("Stats atualizados:", stats)
+  }, [stats])
+
 
   return (
     <AuthGuard requiredRole="admin">
