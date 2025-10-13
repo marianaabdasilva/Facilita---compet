@@ -75,12 +75,21 @@ export default function ClientsPage() {
     fetchClients();
   }, []);
 
-const filteredClients = clients.filter((client) =>
-  [client.cliente, client.email, client.nome_fantasia, client.CNPJ, client.data_criacao]
-    .some((field) =>
-      (field ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-    )
-);
+const filteredClients = clients.filter((client) => {
+  const fieldsToSearch = [
+    client.cliente,
+    client.email,
+    client.nome_fantasia,
+    client.CNPJ?.toString(),
+    client.data_criacao ? new Date(client.data_criacao).toLocaleDateString("pt-BR") : ''
+  ]
+
+  return fieldsToSearch.some((field) =>
+    (field || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
+  )
+})
+
+
 
 console.log(filteredClients);
 
