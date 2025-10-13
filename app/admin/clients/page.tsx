@@ -17,7 +17,7 @@ interface Client {
   cliente: string;
   nome_fantasia: string;
   cnpj: string;
-  createdAt: string;
+  data_criacao: string;
 }
 
 function formatCNPJ(value: string) {
@@ -61,7 +61,7 @@ export default function ClientsPage() {
         }
 
         const data: Client[] = await response.json();
-        console.log(data);
+      
         
 
         setClients(data);
@@ -76,12 +76,13 @@ export default function ClientsPage() {
   }, []);
 
 const filteredClients = clients.filter((client) =>
-  [client.cliente, client.email, client.nome_fantasia, client.cnpj]
+  [client.cliente, client.email, client.nome_fantasia, client.CNPJ, client.data_criacao]
     .some((field) =>
       (field ?? '').toLowerCase().includes(searchTerm.toLowerCase())
     )
 );
 
+console.log(filteredClients);
 
 
   return (
@@ -161,10 +162,10 @@ const filteredClients = clients.filter((client) =>
                               </div>
                             </TableCell>
                             <TableCell>{client.nome_fantasia}</TableCell>
-                            <TableCell className="font-mono text-sm">{client.cnpj}</TableCell>
+                            <TableCell className="font-mono text-sm">{client.CNPJ}</TableCell>
                             <TableCell>
                               <div className="text-sm text-gray-500">
-                                {new Date(client.createdAt).toLocaleDateString("pt-BR")}
+                                {new Date(client.data_criacao).toLocaleDateString("pt-BR")}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -217,7 +218,7 @@ const filteredClients = clients.filter((client) =>
                 <p><strong>Email:</strong> {selectedClient.email}</p>
                 <p><strong>Empresa:</strong> {selectedClient.company}</p>
                 <p><strong>CNPJ:</strong> {selectedClient.cnpj}</p>
-                <p><strong>Criado em:</strong> {new Date(selectedClient.createdAt).toLocaleDateString("pt-BR")}</p>
+                <p><strong>Criado em:</strong> {new Date(selectedClient.data_criacao).toLocaleDateString("pt-BR")}</p>
               </div>
             )}
 
