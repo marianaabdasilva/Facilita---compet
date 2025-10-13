@@ -4,10 +4,23 @@ import { useEffect, useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { AdminLayout } from "@/components/admin-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Search, UserPlus, RefreshCw } from "lucide-react"
 import documents from "@/lib/documents"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -24,7 +37,7 @@ export default function UsersPage() {
     Nome: "",
     Email: "",
     Senha: "",
-    nivel_usuario_id: 2, // padrão cliente
+    nivel_usuario_id: 2,
   })
 
   // 🔹 Carrega a lista de usuários
@@ -32,17 +45,8 @@ export default function UsersPage() {
     try {
       setLoading(true)
       setError(null)
-
       const res = await documents.get("/usuarios")
-      console.log("📦 Dados recebidos:", res.data)
-
-      // Garante que sempre será um array
-      const data =
-        Array.isArray(res.data) ? res.data :
-        Array.isArray(res.data.usuarios) ? res.data.usuarios :
-        []
-
-      setUsuarios(data)
+      setUsuarios(res.data)
     } catch (err) {
       console.error(err)
       setError("Erro ao carregar usuários.")
@@ -67,7 +71,12 @@ export default function UsersPage() {
       setSuccess(null)
       await documents.post("/cadastro", novoUsuario)
       setSuccess("Usuário cadastrado com sucesso!")
-      setNovoUsuario({ Nome: "", Email: "", Senha: "", nivel_usuario_id: 2 })
+      setNovoUsuario({
+        Nome: "",
+        Email: "",
+        Senha: "",
+        nivel_usuario_id: 2,
+      })
       fetchUsuarios()
     } catch (err) {
       console.error(err)
@@ -76,11 +85,13 @@ export default function UsersPage() {
   }
 
   // 🔹 Filtragem segura
-  const filteredUsers = Array.isArray(usuarios)
-    ? usuarios.filter(
-        (user) =>
-          user.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  
+  const filteredUsers = Array.isArray(usuarios.data)
+    ? usuarios.data.filter((user) =>
+        [user.nome, user.email]
+          .some((field) =>
+            (field ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+          )
       )
     : []
 
@@ -103,7 +114,9 @@ export default function UsersPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Usuários</h1>
-              <p className="text-gray-600 mt-1">Gerencie e cadastre novos usuários no sistema</p>
+              <p className="text-gray-600 mt-1">
+                Gerencie e cadastre novos usuários no sistema
+              </p>
             </div>
           </div>
 
@@ -128,27 +141,38 @@ export default function UsersPage() {
                 <UserPlus className="w-5 h-5 mr-2 text-blue-600" />
                 Cadastrar Novo Usuário
               </CardTitle>
-              <CardDescription>Preencha as informações abaixo para criar um novo usuário</CardDescription>
+              <CardDescription>
+                Preencha as informações abaixo para criar um novo usuário
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
                 placeholder="Nome completo"
                 value={novoUsuario.Nome}
-                onChange={(e) => setNovoUsuario({ ...novoUsuario, Nome: e.target.value })}
+                onChange={(e) =>
+                  setNovoUsuario({ ...novoUsuario, Nome: e.target.value })
+                }
               />
               <Input
                 placeholder="E-mail"
                 type="email"
                 value={novoUsuario.Email}
-                onChange={(e) => setNovoUsuario({ ...novoUsuario, Email: e.target.value })}
+                onChange={(e) =>
+                  setNovoUsuario({ ...novoUsuario, Email: e.target.value })
+                }
               />
               <Input
                 placeholder="Senha"
                 type="password"
                 value={novoUsuario.Senha}
-                onChange={(e) => setNovoUsuario({ ...novoUsuario, Senha: e.target.value })}
+                onChange={(e) =>
+                  setNovoUsuario({ ...novoUsuario, Senha: e.target.value })
+                }
               />
-              <Button onClick={handleCadastro} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button
+                onClick={handleCadastro}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 Cadastrar Usuário
               </Button>
             </CardContent>
@@ -158,7 +182,9 @@ export default function UsersPage() {
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Lista de Usuários ({filteredUsers.length})</CardTitle>
-              <CardDescription>Todos os usuários cadastrados no sistema</CardDescription>
+              <CardDescription>
+                Todos os usuários cadastrados no sistema
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {/* Busca */}
@@ -186,18 +212,25 @@ export default function UsersPage() {
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user) => (
                         <TableRow key={user.id_usuario}>
-                          <TableCell className="font-medium">{user.nome}</TableCell>
+                          <TableCell className="font-medium">
+                            {user.nome}
+                          </TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
-                              {user.nivel_usuario_id === 1 ? "Administrador" : "Cliente"}
+                              {user.nivel_usuario_id === 1
+                                ? "Administrador"
+                                : "Cliente"}
                             </Badge>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-gray-500 py-6">
+                        <TableCell
+                          colSpan={3}
+                          className="text-center text-gray-500 py-6"
+                        >
                           Nenhum usuário encontrado.
                         </TableCell>
                       </TableRow>

@@ -14,9 +14,8 @@ import Link from "next/link";
 
 interface Client {
   id: string;
-  name: string;
-  email: string;
-  company: string;
+  cliente: string;
+  nome_fantasia: string;
   cnpj: string;
   createdAt: string;
 }
@@ -49,18 +48,22 @@ export default function ClientsPage() {
           return;
         }
 
-        const response = await fetch("https://projeto-back-ten.vercel.app/clientes", {
+        const response = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
         });
 
+        
         if (!response.ok) {
           throw new Error("Erro ao buscar clientes");
         }
 
         const data: Client[] = await response.json();
+        console.log(data);
+        
+
         setClients(data);
         setLoading(false);
       } catch (err: any) {
@@ -72,10 +75,14 @@ export default function ClientsPage() {
     fetchClients();
   }, []);
 
-  const filteredClients = clients.filter((client) =>
-    [client.name, client.email, client.company, client.cnpj]
-      .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+const filteredClients = clients.filter((client) =>
+  [client.cliente, client.email, client.nome_fantasia, client.cnpj]
+    .some((field) =>
+      (field ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+);
+
+
 
   return (
     <AuthGuard requiredRole="admin">
@@ -149,11 +156,11 @@ export default function ClientsPage() {
                           <TableRow key={client.id}>
                             <TableCell>
                               <div>
-                                <div className="font-medium text-gray-900">{client.name}</div>
+                                <div className="font-medium text-gray-900">{client.cliente}</div>
                                 <div className="text-sm text-gray-500">{client.email}</div>
                               </div>
                             </TableCell>
-                            <TableCell>{client.company}</TableCell>
+                            <TableCell>{client.nome_fantasia}</TableCell>
                             <TableCell className="font-mono text-sm">{client.cnpj}</TableCell>
                             <TableCell>
                               <div className="text-sm text-gray-500">

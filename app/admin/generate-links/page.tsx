@@ -50,8 +50,17 @@ export default function GenerateLinksPage() {
   // Buscar clientes
   const fetchClientes = async () => {
     try {
-      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes")
+      const token = localStorage.getItem("token") // Pegue o token do localStorage
+
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+        },
+      })
+      
+
       const data: Array<{ id_cliente: number; nome: string }> = resp.data
+
       setAllClientes(
         data.map((c) => ({
           value: String(c.id_cliente),
@@ -59,10 +68,12 @@ export default function GenerateLinksPage() {
           id_cliente: c.id_cliente,
         }))
       )
+      
     } catch (err) {
       console.error("Erro ao buscar clientes:", err)
     }
   }
+
 
   // Buscar tipos de processo
   const fetchProcessos = async () => {
@@ -168,13 +179,12 @@ export default function GenerateLinksPage() {
                 {
                   title: "Taxa de Uso",
                   color: "text-blue-600",
-                  value: `${
-                    generatedLinks.length
+                  value: `${generatedLinks.length
                       ? Math.round(
-                          (generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100
-                        )
+                        (generatedLinks.filter((l) => l.used).length / generatedLinks.length) * 100
+                      )
                       : 0
-                  }%`,
+                    }%`,
                 },
               ].map((stat, i) => (
                 <Card key={i} className="border-0 shadow-lg">
