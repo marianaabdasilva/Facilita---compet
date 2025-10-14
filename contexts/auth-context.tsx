@@ -10,7 +10,7 @@ interface AuthContextType extends AuthState {
     email: string
     phone: string
     password: string
-    role: "client" | "employee" 
+    role: "client"
   }) => Promise<void>
   logout: () => Promise<void>
 }
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string
     phone: string
     password: string
-    role: "client" | "employee"
+    role: "client"
   }) => {
     setState((prev) => ({ ...prev, isLoading: true }))
     try {

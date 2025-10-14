@@ -91,9 +91,6 @@ const filteredClients = clients.filter((client) => {
 
 
 
-console.log(filteredClients);
-
-
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>

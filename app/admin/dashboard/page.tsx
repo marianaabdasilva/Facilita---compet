@@ -99,7 +99,6 @@ export default function AdminDashboard() {
 
         if (res.ok) {
           const data = await res.json()
-          console.log("Dados da API:", data)
 
           setStats({
             totalClients: data.totalClientes ?? 0,
@@ -119,7 +118,6 @@ export default function AdminDashboard() {
 
   // Se quiser debugar mudanças no estado:
   useEffect(() => {
-    console.log("Stats atualizados:", stats)
   }, [stats])
 
 

@@ -25,6 +25,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  
 
   const handleLogout = async () => {
     await logout()
@@ -87,14 +88,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-blue-100 text-blue-600">
-                        {user?.name?.charAt(0) || "A"}
+                        {user?.nome?.charAt(0) || "A"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block">{user?.name}</span>
+                    <span className="hidden md:block">{user?.nome}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Administrador</DropdownMenuLabel>
+                  <DropdownMenuLabel> {user?.nome || ""}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/admin/profile" className="cursor-pointer">

@@ -34,10 +34,11 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   const [novoUsuario, setNovoUsuario] = useState({
-    Nome: "",
-    Email: "",
-    Senha: "",
-    nivel_usuario_id: 2,
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    role: "client", // O padrão de 'client' ou 'admin'
   })
 
   // 🔹 Carrega a lista de usuários
@@ -61,7 +62,7 @@ export default function UsersPage() {
 
   // 🔹 Cadastra um novo usuário
   const handleCadastro = async () => {
-    if (!novoUsuario.Nome || !novoUsuario.Email || !novoUsuario.Senha) {
+    if (!novoUsuario.name || !novoUsuario.email || !novoUsuario.phone || !novoUsuario.password) {
       setError("Preencha todos os campos antes de cadastrar.")
       return
     }
@@ -72,10 +73,11 @@ export default function UsersPage() {
       await documents.post("/cadastro", novoUsuario)
       setSuccess("Usuário cadastrado com sucesso!")
       setNovoUsuario({
-        Nome: "",
-        Email: "",
-        Senha: "",
-        nivel_usuario_id: 2,
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        role: "client", // Resetando o valor de role para "client"
       })
       fetchUsuarios()
     } catch (err) {
@@ -85,7 +87,6 @@ export default function UsersPage() {
   }
 
   // 🔹 Filtragem segura
-  
   const filteredUsers = Array.isArray(usuarios.data)
     ? usuarios.data.filter((user) =>
         [user.nome, user.email]
@@ -148,25 +149,33 @@ export default function UsersPage() {
             <CardContent className="space-y-4">
               <Input
                 placeholder="Nome completo"
-                value={novoUsuario.Nome}
+                value={novoUsuario.name}
                 onChange={(e) =>
-                  setNovoUsuario({ ...novoUsuario, Nome: e.target.value })
+                  setNovoUsuario({ ...novoUsuario, name: e.target.value })
                 }
               />
               <Input
                 placeholder="E-mail"
                 type="email"
-                value={novoUsuario.Email}
+                value={novoUsuario.email}
                 onChange={(e) =>
-                  setNovoUsuario({ ...novoUsuario, Email: e.target.value })
+                  setNovoUsuario({ ...novoUsuario, email: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Telefone"
+                type="text"
+                value={novoUsuario.phone}
+                onChange={(e) =>
+                  setNovoUsuario({ ...novoUsuario, phone: e.target.value })
                 }
               />
               <Input
                 placeholder="Senha"
                 type="password"
-                value={novoUsuario.Senha}
+                value={novoUsuario.password}
                 onChange={(e) =>
-                  setNovoUsuario({ ...novoUsuario, Senha: e.target.value })
+                  setNovoUsuario({ ...novoUsuario, password: e.target.value })
                 }
               />
               <Button
@@ -218,7 +227,7 @@ export default function UsersPage() {
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
-                              {user.nivel_usuario_id === 1
+                              {user.nivel_usuario_id === 2
                                 ? "Administrador"
                                 : "Cliente"}
                             </Badge>

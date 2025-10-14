@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {Eye, EyeOff} from "lucide-react"
+import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -35,21 +35,11 @@ export default function LoginPage() {
 
     try {
       const response = await login(email, password);
-      console.log("Resposta do backend:", response);
 
       await login(email, password);
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      
-      if (user.role === "admin") {
-        router.push("/admin/dashboard");
-      } else if (user.role === "employee") {
-        router.push("/employee/dashboard")
-      } else {
-        router.push("/dashboard");
-      }
 
-
-
+      router.push("/admin/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login");
     }
@@ -104,7 +94,7 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-                <div className="space-y-2 relative">
+              <div className="space-y-2 relative">
                 <Label htmlFor="password">Senha *</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -121,16 +111,27 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-blue-600 hover:underline"
+                >
                   Esqueceu a senha?
                 </Link>
               </div>
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
+              >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
 
@@ -148,5 +149,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

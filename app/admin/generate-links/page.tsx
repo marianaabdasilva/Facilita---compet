@@ -187,7 +187,6 @@ export default function GenerateLinksPage() {
 
       // Aqui você pode fazer uma requisição POST se quiser salvar na API
 
-      console.log("🔗 Dados usados para gerar o link:");
       console.log({
         id_cliente: selectedClient.id_cliente,
         id_cnpj: selectedCompany.id_cnpj,
