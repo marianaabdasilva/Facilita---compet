@@ -220,10 +220,10 @@ const filteredClients = clients.filter((client) => {
 
             {selectedClient && (
               <div className="space-y-3 mt-2">
-                <p><strong>Nome:</strong> {selectedClient.name}</p>
+                <p><strong>Nome:</strong> {selectedClient.cliente}</p>
                 <p><strong>Email:</strong> {selectedClient.email}</p>
-                <p><strong>Empresa:</strong> {selectedClient.company}</p>
-                <p><strong>CNPJ:</strong> {selectedClient.cnpj}</p>
+                <p><strong>Empresa:</strong> {selectedClient.nome_fantasia}</p>
+                <p><strong>CNPJ:</strong> {selectedClient.CNPJ}</p>
                 <p><strong>Criado em:</strong> {new Date(selectedClient.data_criacao).toLocaleDateString("pt-BR")}</p>
               </div>
             )}

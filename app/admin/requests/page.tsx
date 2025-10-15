@@ -9,16 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog"
-import { Bell, Search, Filter, ExternalLink, Clock, CheckCircle, AlertCircle, Copy, Check, Info } from "lucide-react"
+import { Bell, Search, Filter, ExternalLink, Clock, CheckCircle, AlertCircle, Copy, Check, Info, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Mock data for client requests
@@ -133,6 +128,12 @@ export default function RequestsPage() {
               </h1>
               <p className="text-gray-600 mt-1">Gerencie solicitações de processos dos clientes</p>
             </div>
+             <Link href="/admin/generate-links">
+                <Button className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Gerar Link
+                </Button>
+              </Link>
           </div>
 
           <Alert className="border-blue-200 bg-blue-50">
@@ -141,7 +142,10 @@ export default function RequestsPage() {
             <AlertDescription className="text-blue-800 mt-2">
               <ol className="list-decimal list-inside space-y-2">
                 <li>
-                  <strong>Recebimento da Solicitação:</strong> Cliente solicita abertura de empresa através do sistema
+                  <strong>Recebimento da Solicitação:</strong> Cliente solicita abertura de empresa
+                </li>
+                <li>
+                  <strong>Criação de cliente:</strong> Admin cria cadastro do cliente no sistema
                 </li>
                 <li>
                   <strong>Geração de Link:</strong> Admin gera link personalizado para envio de documentos
