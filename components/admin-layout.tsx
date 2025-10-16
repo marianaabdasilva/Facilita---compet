@@ -79,9 +79,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="w-4 h-4" />
-              </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -8,11 +8,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { User, Shield, Edit, Activity } from "lucide-react"
+import { User, Shield, Edit, Activity, Bell } from "lucide-react"
+import { useState } from "react"
+
 
 export default function AdminProfilePage() {
   const { user } = useAuth()
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [pushNotifications, setPushNotifications] = useState(true)
+  const [twoFactor, setTwoFactor] = useState(false)
 
   return (
     <AuthGuard requiredRole="admin">
@@ -38,10 +44,6 @@ export default function AdminProfilePage() {
                   <User className="w-5 h-5 mr-2" />
                   <CardTitle>Informações Pessoais</CardTitle>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
               </div>
               <CardDescription>Suas informações básicas de perfil</CardDescription>
             </CardHeader>
@@ -49,7 +51,7 @@ export default function AdminProfilePage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome Completo</Label>
-                  <Input id="name" value={user?.name || ""} readOnly />
+                  <Input id="name" value={user?.nome || ""} readOnly />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -69,96 +71,25 @@ export default function AdminProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Access & Permissions */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 mr-2" />
-                <CardTitle>Permissões e Acesso</CardTitle>
-              </div>
-              <CardDescription>Suas permissões administrativas no sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Gerenciar Clientes</span>
+          {/* Notifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Bell className="w-5 h-5 mr-2" />
+                  Notificações
+                </CardTitle>
+                <CardDescription>Configure como você deseja receber notificações</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="email-notifications">Notificações por Email</Label>
+                    <p className="text-sm text-gray-600">Receber alertas importantes por email</p>
                   </div>
-                  <Badge variant="outline" className="bg-white">
-                    Ativo
-                  </Badge>
+                  <Switch id="email-notifications" checked={emailNotifications} onCheckedChange={setEmailNotifications} />
                 </div>
-
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Gerenciar Solicitações</span>
-                  </div>
-                  <Badge variant="outline" className="bg-white">
-                    Ativo
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Gerar Links de Processo</span>
-                  </div>
-                  <Badge variant="outline" className="bg-white">
-                    Ativo
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Visualizar Dashboard Administrativo</span>
-                  </div>
-                  <Badge variant="outline" className="bg-white">
-                    Ativo
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Gerenciar Funcionários</span>
-                  </div>
-                  <Badge variant="outline" className="bg-white">
-                    Ativo
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Activity Stats */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <Activity className="w-5 h-5 mr-2" />
-                <CardTitle>Estatísticas de Atividade</CardTitle>
-              </div>
-              <CardDescription>Resumo das suas atividades no sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">127</div>
-                  <div className="text-sm text-gray-600 mt-1">Clientes Gerenciados</div>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">89</div>
-                  <div className="text-sm text-gray-600 mt-1">Processos Aprovados</div>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">15</div>
-                  <div className="text-sm text-gray-600 mt-1">Links Gerados</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           {/* Security Settings */}
           <Card>
@@ -170,7 +101,6 @@ export default function AdminProfilePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium text-gray-900">Senha</div>
-                  <div className="text-sm text-gray-600">Última alteração há 30 dias</div>
                 </div>
                 <Button variant="outline" size="sm">
                   Alterar Senha

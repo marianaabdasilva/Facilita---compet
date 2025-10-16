@@ -178,7 +178,7 @@ export default function GenerateLinksPage() {
         clientName: selectedClient.label,
         companyName: selectedCompany.label,
         processType: selectedProcess.label,
-        link: `https://facilita.com/abrir-empresa/documentos?id=${id}`,
+        link: `https://facilita-compet.vercel.app/abrir-empresa/documentos?id=${id}`,
         status: "Ativo",
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
