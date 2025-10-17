@@ -17,7 +17,7 @@ export default function AboutPage() {
           <Link href = "/" className="Back">
           <div className="w-32 h-32 bg-transparent rounded-full flex items-center justify-center">
             <Image
-              src="/Facilitaj.png"
+              src="/Facilitajs.svg"
               alt="Logo"
               width={128}
               height={128}

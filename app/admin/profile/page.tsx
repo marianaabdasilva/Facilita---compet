@@ -30,7 +30,7 @@ export default function AdminProfilePage() {
               <h1 className="text-3xl font-bold text-gray-900">Perfil do Administrador</h1>
               <p className="text-gray-600 mt-1">Gerencie suas informações pessoais e configurações</p>
             </div>
-            <Badge className="bg-red-100 text-purple-700 hover:bg-purple-100">
+            <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
               <Shield className="w-3 h-3 mr-1" />
               Administrador
             </Badge>

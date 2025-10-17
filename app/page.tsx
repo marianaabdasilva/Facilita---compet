@@ -21,7 +21,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <div className="w-32 h-32 bg-transparent rounded-full flex items-center justify-center">
                 <Image
-                  src="/Facilitaj.png"
+                  src="/Facilitajs.svg"
                   alt="Logo"
                   width={128}
                   height={128}
@@ -211,7 +211,7 @@ export default function HomePage() {
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-20 h-20 bg-white rounded-full relative flex items-center justify-center">
                   <Image
-                    src="/Facilitaj.png"
+                    src="/Facilitajs.svg"
                     alt="Logo da Empresa"
                     fill
                     className="object-contain"

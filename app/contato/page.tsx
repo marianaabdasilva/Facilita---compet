@@ -17,7 +17,7 @@ export default function ContatoPage() {
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
                 <Image
-                  src="/Facilitaj.png"
+                  src="/Facilitajs.svg"
                   alt="Logo"
                   width={120}
                   height={120}

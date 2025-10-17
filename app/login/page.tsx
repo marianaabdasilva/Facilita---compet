@@ -53,7 +53,7 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center space-x-3">
             <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
               <img
-                src="/Facilitaj.png"
+                src="/Facilitajs.svg"
                 alt="Logo da Empresa"
                 width={30}
                 height={30}

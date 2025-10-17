@@ -11,7 +11,7 @@ export default function NotFound() {
         <div className="flex items-center justify-center mb-6">
           <div className="w-50 h-50 bg-transparent rounded-full flex items-center justify-center">
             <Image
-              src="/Facilitaj.png"
+              src="/Facilitajs.svg"
               alt="Logo"
               width={200}
               height={200}

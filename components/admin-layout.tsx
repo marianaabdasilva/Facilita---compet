@@ -49,7 +49,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Logo */}
             <Link href = "/">
             <img
-              src="/Facilitaj.png"
+              src="/Facilitajs.svg"
               alt="Logo da empresa"
               width={48}
               height={48}
