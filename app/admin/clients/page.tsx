@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Search, MoreHorizontal, Eye, Plus } from "lucide-react";
+import { Search, MoreHorizontal, Eye, Plus, UserPlus  } from "lucide-react";
 import Link from "next/link";
 
 interface Client {
@@ -101,12 +101,20 @@ const filteredClients = clients.filter((client) => {
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Clientes</h1>
               <p className="text-gray-600 mt-1">Gerencie todos os clientes e seus processos</p>
             </div>
-            <Link href="/abrir-empresa/conta">
-              <Button className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Empresa
-              </Button>
-            </Link>
+              <div className="flex gap-3 mt-4 md:mt-0">
+              <Link href="/clientes">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Criar Conta de Cliente
+                </Button>
+              </Link>
+              <Link href="/abrir-empresa/atividade">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Empresa
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Pesquisa */}

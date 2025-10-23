@@ -63,7 +63,7 @@ export default function DocumentosPage() {
       <header className="bg-transparent">
         <div className="container mx-auto px-4 py-4 flex justify-center">
           <Image
-            src="/Facilitaj.png"
+            src="/Facilitajs.svg"
             alt="Logo"
             width={120}
             height={120}
