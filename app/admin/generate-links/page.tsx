@@ -96,7 +96,7 @@ export default function GenerateLinksPage() {
     }
   };
 
-  // Buscar tipos de processo
+
   const fetchProcessos = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -120,84 +120,168 @@ export default function GenerateLinksPage() {
     }
   };
 
-  // Buscar empresas do cliente selecionado
-  const fetchClientCompanies = async (idCliente: number) => {
+
+const fetchAllCompanies = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const resp = await axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return resp.data; // array com todas as empresas
+  } catch (err) {
+    console.error("Erro ao buscar todas as empresas:", err);
+    return [];
+  }
+};
+
+const fetchGeneratedLinks = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    // Buscar links gerados
+    const respLinks = await axios.get("https://projeto-back-ten.vercel.app/processos", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const linksData = respLinks.data;
+
+    console.log("Links recebidos do backend:", linksData);
+
+    // Map de clientes
+    const clientesMap = allClientes.reduce((acc, c) => {
+      acc[c.id_cliente] = c.label;
+      return acc;
+    }, {} as Record<number, string>);
+
+    // Map de empresas (todas as empresas carregadas de uma vez)
+    const allEmpresas = await fetchAllCompanies();
+    const empresasMap = allEmpresas.reduce((acc: Record<number, string>, e: any) => {
+      acc[e.id_cnpj] = `${e.nome} (CNPJ: ${e.numero_cnpj})`;
+      return acc;
+    }, {});
+    console.log("Empresas carregadas:", allEmpresas);
+
+    // Formatar links
+    const formattedLinks: GeneratedLink[] = linksData.map((item: any) => ({
+      id: String(item.id_processo),
+      clientName: clientesMap[item.id_cliente] || "Cliente não informado",
+      companyName: empresasMap[item.id_cnpj] || "Empresa não informado",
+      processType: item.tipo || "Tipo não informado",
+      link: item.link || "Sem link",
+      status: item.status_link || "Desconhecido",
+      createdAt: item.data_atualizacao || new Date().toISOString(),
+      expiresAt: item.data_expiracao || "",
+      used: item.status_link?.toLowerCase() === "usado",
+    }));
+
+
+
+
+    setGeneratedLinks(formattedLinks);
+  } catch (error) {
+    console.error("Erro ao buscar links gerados:", error);
+  }
+};
+
+// UseEffect principal
+useEffect(() => {
+  const loadData = async () => {
+    await fetchClientes();
+    await fetchProcessos();
+  };
+  loadData();
+}, []);
+
+useEffect(() => {
+  if (allClientes.length > 0) {
+    fetchGeneratedLinks(); // agora já vai ter todas as empresas
+  }
+}, [allClientes]);
+
+useEffect(() => {
+  const loadClientCompanies = async () => {
+    if (!selectedClient) {
+      setClientCompanies([]);
+      setSelectedCompany(null);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get(
-        `https://projeto-back-ten.vercel.app/cliente_cnpjs/${idCliente}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+        `https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+);
 
-      const empresas: Array<{
-        id_cnpj: number;
-        nome: string;
-        numero_cnpj: number;
-        data_criacao: string;
-      }> = resp.data;
 
-      const formatted = empresas.map((empresa) => ({
-        value: String(empresa.id_cnpj),
-        label: `${empresa.nome} (CNPJ: ${empresa.numero_cnpj})`,
-        id_cnpj: empresa.id_cnpj,
+      const empresas = resp.data.map((e: any) => ({
+        value: String(e.id_cnpj),
+        label: `${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"})`,
+        id_cnpj: e.id_cnpj,
       }));
 
-      setClientCompanies(formatted);
+      setClientCompanies(empresas);
       setSelectedCompany(null);
     } catch (err) {
       console.error("Erro ao buscar empresas do cliente:", err);
       setClientCompanies([]);
+      setSelectedCompany(null);
     }
   };
 
-  // Efeitos iniciais
-  useEffect(() => {
-    fetchClientes();
-    fetchProcessos();
-  }, []);
+  loadClientCompanies();
+}, [selectedClient]); // depende do cliente selecionado
 
-  useEffect(() => {
-    if (selectedClient) {
-      fetchClientCompanies(selectedClient.id_cliente);
-    }
-  }, [selectedClient]);
 
   const handleGenerateLink = async () => {
-    if (!selectedClient || !selectedCompany || !selectedProcess) return;
+  if (!selectedClient || !selectedCompany || !selectedProcess) return;
 
-    setIsGenerating(true);
+  setIsGenerating(true);
 
-    setTimeout(() => {
-      const id = Math.random().toString(36).substring(2, 10);
-      const newLink: GeneratedLink = {
-        id,
-        clientName: selectedClient.label,
-        companyName: selectedCompany.label,
-        processType: selectedProcess.label,
-        link: `https://facilita-compet.vercel.app/abrir-empresa/documentos?id=${id}`,
-        status: "Ativo",
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
-        used: false,
-      };
+  try {
+    const requestData = {
+      id_cliente: selectedClient.id_cliente,
+      id_cnpj: selectedCompany.id_cnpj,
+      id_tipo_processo: selectedProcess.id_tipo_processo,
+      status: "pendente", 
+    };
 
-      // Aqui você pode fazer uma requisição POST se quiser salvar na API
 
-      console.log({
-        id_cliente: selectedClient.id_cliente,
-        id_cnpj: selectedCompany.id_cnpj,
-        id_tipo_processo: selectedProcess.id_tipo_processo,
-      });
+    const response = await axios.post(
+      "https://projeto-back-ten.vercel.app/processo", 
+      requestData,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
 
-      setGeneratedLinks((prev) => [...prev, newLink]);
-      setGeneratedLink(newLink.link);
-      setIsGenerating(false);
-    }, 1000);
-  };
+    const { link, data_expiracao, id } = response.data; 
+
+
+    const newLink: GeneratedLink = {
+      id: id,  
+      clientName: selectedClient.label,
+      companyName: selectedCompany.label,
+      processType: selectedProcess.label,
+      link,
+      status: "Ativo",
+      createdAt: new Date().toISOString(),
+      expiresAt: data_expiracao,
+      used: false,
+    };
+
+    setGeneratedLinks((prev) => [...prev, newLink]);
+    setGeneratedLink(link);
+
+  } catch (error) {
+    console.error("Erro ao gerar o link:", error);
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+
 
   const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
 
