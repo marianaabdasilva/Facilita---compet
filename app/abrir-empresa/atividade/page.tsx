@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Select, { MultiValue, SingleValue } from "react-select";
+import Select, { SingleValue, MultiValue } from "react-select";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +29,24 @@ interface CnaeOption {
   id_cnae: number;
 }
 
+interface ClientOption {
+  value: string;
+  label: string;
+  id_cliente: number;
+}
+
 export default function AtividadePage() {
   const router = useRouter();
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+
+  // Clientes
+  const [allClients, setAllClients] = useState<ClientOption[]>([]);
+  const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
+    null
+  );
 
   // CNAEs
   const [allCnaes, setAllCnaes] = useState<CnaeOption[]>([]);
@@ -61,6 +73,22 @@ export default function AtividadePage() {
     setUserData(JSON.parse(tempData));
   }, [router]);
 
+  // Buscar Clientes
+  const fetchClients = async () => {
+    try {
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes");
+      const data: Array<{ id_cliente: number; nome: string }> = resp.data;
+      const opts: ClientOption[] = data.map((c) => ({
+        value: String(c.id_cliente),
+        label: c.nome,
+        id_cliente: c.id_cliente,
+      }));
+      setAllClients(opts);
+    } catch (err) {
+      console.error("Erro ao buscar clientes:", err);
+    }
+  };
+
   // Buscar CNAEs
   const fetchCnaes = async () => {
     try {
@@ -80,6 +108,7 @@ export default function AtividadePage() {
 
   useEffect(() => {
     fetchCnaes();
+    fetchClients();
   }, []);
 
   // Buscar endereço pelo CEP
@@ -112,6 +141,12 @@ export default function AtividadePage() {
     setError("");
     setIsLoading(true);
 
+    if (!selectedClient) {
+      setError("Por favor, selecione um cliente.");
+      setIsLoading(false);
+      return;
+    }
+
     if (selectedCnaes.length === 0) {
       setError("Por favor, selecione pelo menos uma atividade (CNAE).");
       setIsLoading(false);
@@ -128,6 +163,7 @@ export default function AtividadePage() {
 
     const formData = new FormData(e.currentTarget);
     const activityData = {
+      cliente: selectedClient,
       cnaes: selectedCnaes.map((c) => ({
         id_cnae: c.id_cnae,
         numero: c.value,
@@ -169,11 +205,16 @@ export default function AtividadePage() {
     );
   });
 
-  // exemplo de handler
+  // Handler do select de CNAE
   const handleSelectChange = (
     sel: SingleValue<CnaeOption> | MultiValue<CnaeOption> | null
   ) => {
     setSelectedCnaes(Array.isArray(sel) ? [...sel] : sel ? [sel] : []);
+  };
+
+  // Handler do select de cliente
+  const handleClientChange = (sel: SingleValue<ClientOption> | null) => {
+    setSelectedClient(sel);
   };
 
   return (
@@ -200,7 +241,7 @@ export default function AtividadePage() {
               <CardHeader>
                 <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
                 <CardDescription>
-                  Defina as atividades (CNAEs) que a empresa irá exercer
+                  Defina o cliente e as atividades (CNAEs) da empresa
                 </CardDescription>
               </CardHeader>
 
@@ -213,6 +254,18 @@ export default function AtividadePage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* CLIENTE */}
+                  <div className="space-y-2">
+                    <Label htmlFor="cliente">Selecione o Cliente *</Label>
+                    <Select
+                      options={allClients}
+                      value={selectedClient}
+                      onChange={handleClientChange}
+                      placeholder="Selecione um cliente"
+                      className="z-50"
+                    />
+                  </div>
+
                   {/* CNAEs */}
                   <div className="space-y-2">
                     <Label htmlFor="cnaes">Atividades (CNAEs) *</Label>
@@ -244,7 +297,9 @@ export default function AtividadePage() {
                       <input
                         type="checkbox"
                         checked={useDifferentAddress}
-                        onChange={(e) => setUseDifferentAddress(e.target.checked)}
+                        onChange={(e) =>
+                          setUseDifferentAddress(e.target.checked)
+                        }
                       />
                       <span>
                         A empresa não se localiza na residência do titular
@@ -380,4 +435,3 @@ export default function AtividadePage() {
     </AuthGuard>
   );
 }
-
