@@ -104,7 +104,7 @@ const filteredClients = clients.filter((client) => {
               <p className="text-gray-600 mt-1">Gerencie todos os clientes e seus processos</p>
             </div>
               <div className="flex gap-3 mt-4 md:mt-0">
-              <Link href="/clientes">
+              <Link href="/abrir-empresa/clientes">
                 <Button className="bg-green-600 hover:bg-green-700">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Criar Conta de Cliente
