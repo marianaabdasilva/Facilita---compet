@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, MoreHorizontal, Eye, Plus, UserPlus  } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface Client {
   id: string;
@@ -38,7 +39,6 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null); // 👈 cliente selecionado
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // 👈 controle do modal
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -192,14 +192,14 @@ const filteredClients = clients.filter((client) => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedClient(client);
-                                      setIsDialogOpen(true);
-                                    }}
-                                  >
-                                    <Eye className="w-4 h-4 mr-2" /> Visualizar
+                                  <Link href={`/clientes/empresas/${client.CNPJ}`}>
+                                  <DropdownMenuItem asChild>
+                                    <div className="flex items-center cursor-pointer">
+                                      <Eye className="w-4 h-4 mr-2" />
+                                      Visualizar
+                                    </div>
                                   </DropdownMenuItem>
+                                </Link>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
@@ -219,32 +219,6 @@ const filteredClients = clients.filter((client) => {
             </Card>
           )}
         </div>
-
-        {/* ✅ Modal de visualização */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Detalhes do Cliente</DialogTitle>
-              <DialogDescription>Informações completas do cliente selecionado</DialogDescription>
-            </DialogHeader>
-
-            {selectedClient && (
-              <div className="space-y-3 mt-2">
-                <p><strong>Nome:</strong> {selectedClient.cliente}</p>
-                <p><strong>Email:</strong> {selectedClient.email}</p>
-                <p><strong>Empresa:</strong> {selectedClient.nome_fantasia}</p>
-                <p><strong>CNPJ:</strong> {selectedClient.CNPJ}</p>
-                <p><strong>Criado em:</strong> {new Date(selectedClient.data_criacao).toLocaleDateString("pt-BR")}</p>
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end">
-              <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
-                Fechar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </AdminLayout>
     </AuthGuard>
   );
