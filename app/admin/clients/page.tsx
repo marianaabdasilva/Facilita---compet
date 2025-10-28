@@ -18,6 +18,8 @@ interface Client {
   nome_fantasia: string;
   cnpj: string;
   data_criacao: string;
+  email: string;
+  CNPJ: string;
 }
 
 function formatCNPJ(value: string) {

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Select, { SingleValue, MultiValue } from "react-select";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +17,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
-
-// ✅ (adicione essas importações se estiver usando autenticação/admin)
+import { CheckCircle, FileText, Home } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 
@@ -29,7 +27,7 @@ interface CnaeOption {
   id_cnae: number;
 }
 
-interface ClientOption {
+interface ClientesOption {
   value: string;
   label: string;
   id_cliente: number;
@@ -40,13 +38,11 @@ export default function AtividadePage() {
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Clientes
-  const [allClients, setAllClients] = useState<ClientOption[]>([]);
-  const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
-    null
-  );
+  const [allClientes, setAllClientes] = useState<ClientesOption[]>([]);
+  const [selectedClient, setSelectedClient] = useState<ClientesOption | null>(null);
 
   // CNAEs
   const [allCnaes, setAllCnaes] = useState<CnaeOption[]>([]);
@@ -63,27 +59,25 @@ export default function AtividadePage() {
   const [city, setCity] = useState("");
   const [stateUf, setStateUf] = useState("");
 
-  // Carregar dados temporários do usuário
-  useEffect(() => {
-    const tempData = localStorage.getItem("tempUserData");
-    if (!tempData) {
-      router.push("/abrir-empresa/conta");
-      return;
-    }
-    setUserData(JSON.parse(tempData));
-  }, [router]);
-
-  // Buscar Clientes
-  const fetchClients = async () => {
+  // Buscar clientes
+  const fetchClientes = async () => {
     try {
-      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes");
+      const token = localStorage.getItem("token");
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data: Array<{ id_cliente: number; nome: string }> = resp.data;
-      const opts: ClientOption[] = data.map((c) => ({
-        value: String(c.id_cliente),
-        label: c.nome,
-        id_cliente: c.id_cliente,
-      }));
-      setAllClients(opts);
+
+      setAllClientes(
+        data.map((c) => ({
+          value: String(c.id_cliente),
+          label: c.nome,
+          id_cliente: c.id_cliente,
+        }))
+      );
     } catch (err) {
       console.error("Erro ao buscar clientes:", err);
     }
@@ -93,8 +87,7 @@ export default function AtividadePage() {
   const fetchCnaes = async () => {
     try {
       const resp = await axios.get("https://projeto-back-ten.vercel.app/cnae");
-      const data: Array<{ id_cnae: number; nome: string; numero: string }> =
-        resp.data;
+      const data: Array<{ id_cnae: number; nome: string; numero: string }> = resp.data;
       const opts: CnaeOption[] = data.map((c) => ({
         value: c.numero,
         label: `${c.numero} — ${c.nome}`,
@@ -108,7 +101,7 @@ export default function AtividadePage() {
 
   useEffect(() => {
     fetchCnaes();
-    fetchClients();
+    fetchClientes();
   }, []);
 
   // Buscar endereço pelo CEP
@@ -172,22 +165,14 @@ export default function AtividadePage() {
       fantasyName: formData.get("fantasyName") as string,
       description: formData.get("description") as string,
       enderecoEmpresa: useDifferentAddress
-        ? {
-            cep,
-            street,
-            number,
-            complement,
-            district,
-            city,
-            state: stateUf,
-          }
+        ? { cep, street, number, complement, district, city, state: stateUf }
         : null,
     };
 
     try {
-      const combinedData = { ...userData, ...activityData };
-      localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      router.push("/admin/generate-links");
+      localStorage.setItem("tempUserData", JSON.stringify(activityData));
+      setIsSuccess(true);
+      setTimeout(() => router.push("/admin/generate-links"), 2000);
     } catch (err) {
       console.error(err);
       setError("Erro ao salvar dados. Tente novamente.");
@@ -196,26 +181,41 @@ export default function AtividadePage() {
     }
   };
 
-  if (!userData) return <div>Carregando...</div>;
-
   const filteredCnaes = allCnaes.filter((opt) => {
     const lower = opt.label.toLowerCase();
-    return (
-      lower.includes(cnaeSearch.toLowerCase()) || opt.value.includes(cnaeSearch)
-    );
+    return lower.includes(cnaeSearch.toLowerCase()) || opt.value.includes(cnaeSearch);
   });
 
-  // Handler do select de CNAE
   const handleSelectChange = (
     sel: SingleValue<CnaeOption> | MultiValue<CnaeOption> | null
-  ) => {
-    setSelectedCnaes(Array.isArray(sel) ? [...sel] : sel ? [sel] : []);
-  };
+  ) => setSelectedCnaes(Array.isArray(sel) ? [...sel] : sel ? [sel] : []);
 
-  // Handler do select de cliente
-  const handleClientChange = (sel: SingleValue<ClientOption> | null) => {
+  const handleClientChange = (sel: SingleValue<ClientesOption> | null) =>
     setSelectedClient(sel);
-  };
+
+  // Card de sucesso
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-50 flex items-center justify-center px-4">
+      <Card className="shadow-lg border-0 max-w-md w-full bg-white text-center">
+        <CardHeader>
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="w-12 h-12 text-green-600" />
+          </div>
+          <CardTitle className="text-2xl font-semibold text-gray-800">
+           Empresa criada com sucesso!
+          </CardTitle>
+          <CardDescription>Você será redirecionado em instantes...</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Button disabled className="mt-4 w-full">
+              Redirecionando...
+            </Button>
+          </CardContent>
+      </Card>
+    </div>  
+    ) 
+  } 
 
   return (
     <AuthGuard requiredRole="admin">
@@ -258,7 +258,7 @@ export default function AtividadePage() {
                   <div className="space-y-2">
                     <Label htmlFor="cliente">Selecione o Cliente *</Label>
                     <Select
-                      options={allClients}
+                      options={allClientes}
                       value={selectedClient}
                       onChange={handleClientChange}
                       placeholder="Selecione um cliente"
@@ -291,15 +291,13 @@ export default function AtividadePage() {
                     />
                   </div>
 
-                  {/* Checkbox para endereço diferente */}
+                  {/* Checkbox endereço diferente */}
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
                         checked={useDifferentAddress}
-                        onChange={(e) =>
-                          setUseDifferentAddress(e.target.checked)
-                        }
+                        onChange={(e) => setUseDifferentAddress(e.target.checked)}
                       />
                       <span>
                         A empresa não se localiza na residência do titular
@@ -397,9 +395,7 @@ export default function AtividadePage() {
 
                   {/* Descrição */}
                   <div className="space-y-2">
-                    <Label htmlFor="description">
-                      Descrição da Atividade
-                    </Label>
+                    <Label htmlFor="description">Descrição da Atividade</Label>
                     <textarea
                       id="description"
                       name="description"
