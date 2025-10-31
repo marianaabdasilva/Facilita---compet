@@ -343,7 +343,7 @@ export default function AboutPage() {
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-20 h-20 bg-white rounded-full relative flex items-center justify-center">
                   <Image
-                    src="/Facilitaj.png"
+                    src="/Facilitajs.svg"
                     alt="Logo da Empresa"
                     fill
                     className="object-contain"
@@ -365,7 +365,10 @@ export default function AboutPage() {
               <h5 className="font-semibold mb-4">Suporte</h5>
               <ul className="space-y-2 text-gray-400">
                 <li>Central de Ajuda</li>
-                <li>Contato</li>
+                <li>
+                  <Link href="/contato">Contato
+                  </Link>
+                  </li>
                 <li>FAQ</li>
                 <li>Documentação</li>
               </ul>

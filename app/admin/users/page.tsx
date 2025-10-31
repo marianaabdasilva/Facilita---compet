@@ -21,10 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Search, UserPlus, RefreshCw } from "lucide-react"
+import { Search, UserPlus, RefreshCw, CheckCircle, AlertCircle } from "lucide-react"
 import documents from "@/lib/documents"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle } from "lucide-react"
 
 export default function UsersPage() {
   const [usuarios, setUsuarios] = useState<any[]>([])
@@ -38,10 +37,22 @@ export default function UsersPage() {
     email: "",
     phone: "",
     password: "",
-    role: "client", // O padrão de 'client' ou 'admin'
+    role: "client",
   })
 
-  // 🔹 Carrega a lista de usuários
+  // 🔹 Função para definir cores por status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "administrador":
+        return "bg-purple-100 text-purple-600 border border-purple-200"
+      case "Funcionario":
+        return "bg-blue-100 text-blue-600 border border-blue-200"
+      default:
+        return "bg-gray-100 text-gray-700 border border-gray-300"
+    }
+  }
+
+  // 🔹 Carrega usuários
   const fetchUsuarios = async () => {
     try {
       setLoading(true)
@@ -60,7 +71,7 @@ export default function UsersPage() {
     fetchUsuarios()
   }, [])
 
-  // 🔹 Cadastra um novo usuário
+  // 🔹 Cadastra novo usuário
   const handleCadastro = async () => {
     if (!novoUsuario.name || !novoUsuario.email || !novoUsuario.phone || !novoUsuario.password) {
       setError("Preencha todos os campos antes de cadastrar.")
@@ -77,7 +88,7 @@ export default function UsersPage() {
         email: "",
         phone: "",
         password: "",
-        role: "client", // Resetando o valor de role para "client"
+        role: "client",
       })
       fetchUsuarios()
     } catch (err) {
@@ -86,7 +97,7 @@ export default function UsersPage() {
     }
   }
 
-  // 🔹 Filtragem segura
+  // 🔹 Filtragem de busca
   const filteredUsers = Array.isArray(usuarios.data)
     ? usuarios.data.filter((user) =>
         [user.nome, user.email]
@@ -221,15 +232,15 @@ export default function UsersPage() {
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user) => (
                         <TableRow key={user.id_usuario}>
-                          <TableCell className="font-medium">
-                            {user.nome}
-                          </TableCell>
+                          <TableCell className="font-medium">{user.nome}</TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">
-                              {user.nivel_usuario_id === 2
-                                ? "Administrador"
-                                : "Cliente"}
+                            <Badge
+                            className={`px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                              user.nivel_usuario_id === 2 ? "administrador" : "Funcionario"
+                            )}`}
+                          >
+                            {user.nivel_usuario_id === 2 ? "Administrador" : "Funcionário"}
                             </Badge>
                           </TableCell>
                         </TableRow>

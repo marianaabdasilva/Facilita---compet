@@ -247,7 +247,12 @@ export default function HomePage() {
             <div>
               <h5 className="font-semibold mb-4">Empresa</h5>
               <ul className="space-y-2 text-gray-400">
-                <li>Sobre Nós</li>
+                <li>
+                  <Link href="/sobre" className="hover:text-white">
+                    Sobre Nós
+                  </Link>
+                </li>
+
                 <li>Termos de Uso</li>
                 <li>Privacidade</li>
                 <li>Blog</li>

@@ -108,7 +108,7 @@ export default function ContatoPage() {
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">WhatsApp</h4>
-                          <p className="text-green-700 font-medium">(11) 99999-9999</p>
+                          <p className="text-green-700 font-medium">(81) 99999-9999</p>
                         </div>
                       </div>
                     </div>
@@ -152,7 +152,7 @@ export default function ContatoPage() {
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">Telefone</h4>
-                        <p className="text-gray-600">(11) 3000-0000</p>
+                        <p className="text-gray-600">(81) 3000-0000</p>
                       </div>
                     </div>
 
@@ -162,7 +162,7 @@ export default function ContatoPage() {
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">Endereço</h4>
-                        <p className="text-gray-600">São Paulo, SP - Brasil</p>
+                        <p className="text-gray-600">Surubim, PE - Brasil</p>
                       </div>
                     </div>
                   </CardContent>

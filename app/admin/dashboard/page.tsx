@@ -143,6 +143,7 @@ export default function AdminDashboard() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/admin/clients">
             <Card className="border-0 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
@@ -153,6 +154,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-muted-foreground">+12% em relação ao mês anterior</p>
               </CardContent>
             </Card>
+            </Link>
 
             <Card className="border-0 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
