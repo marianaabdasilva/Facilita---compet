@@ -148,7 +148,8 @@ export default function DadosPessoaisPage() {
     try {
       const combinedData = { ...userData, ...personalData };
       localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      router.push("/abrir-empresa/atividade");
+      // 🔁 Redireciona para a página de clientes no admin
+      router.push("/admin/clients");
     } catch {
       setError("Erro ao salvar dados. Tente novamente.");
     } finally {
@@ -318,7 +319,7 @@ export default function DadosPessoaisPage() {
 
                   {/* Botões */}
                   <div className="flex justify-between pt-6">
-                    <Link href="/abrir-empresa/conta">
+                    <Link href="/abrir-empresa/clientes">
                       <Button type="button" variant="outline">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Voltar

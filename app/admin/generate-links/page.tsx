@@ -453,9 +453,6 @@ useEffect(() => {
                                   <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
                                     <Copy className="w-3 h-3" />
                                   </Button>
-                                  <Button size="sm" variant="ghost">
-                                    <Eye className="w-3 h-3" />
-                                  </Button>
                                   <Button size="sm" variant="ghost" className="text-red-600">
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
