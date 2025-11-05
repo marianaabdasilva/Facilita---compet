@@ -3,10 +3,17 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { AdminLayout } from "@/components/admin-layout";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 
-interface Client {
-  id: string;
+interface Empresa {
+  id_empresa: string; // 👈 identificador da empresa (depois você confirma o nome no backend)
+  id_cliente: string;
   cliente: string;
   email: string;
   telefone?: string;
@@ -18,13 +25,13 @@ interface Client {
 }
 
 export default function EmpresaDetalhesPage() {
-  const { id } = useParams();
-  const [client, setClient] = useState<Client | null>(null);
+  const { id } = useParams(); // vem da URL: /empresas/[id]
+  const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchClient = async () => {
+    const fetchEmpresa = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Usuário não autenticado");
@@ -32,22 +39,28 @@ export default function EmpresaDetalhesPage() {
         const res = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data: Client[] = await res.json();
-        const found = data.find(c => c.id === String(id));
-        if (!found) throw new Error("Cliente não encontrado");
-        setClient(found);
+
+        const data: Empresa[] = await res.json();
+        console.log("DADOS RETORNADOS PELA API:", data);
+
+        // 👉 Aqui você filtra pelo identificador da empresa (ajuste o campo quando confirmar)
+        const found = data.find((e) => String(e.id_empresa) === String(id));
+
+        if (!found) throw new Error("Empresa não encontrada");
+        setEmpresa(found);
       } catch (err: any) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    if (id) fetchClient();
+
+    if (id) fetchEmpresa();
   }, [id]);
 
   if (loading) return <p>Carregando...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!client) return <p>Cliente não encontrado.</p>;
+  if (!empresa) return <p>Empresa não encontrada.</p>;
 
   return (
     <AdminLayout>
@@ -61,9 +74,17 @@ export default function EmpresaDetalhesPage() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
-              <div><strong>Nome:</strong> {client.cliente}</div>
-              <div><strong>Email:</strong> {client.email}</div>
-              {client.telefone && <div><strong>Telefone:</strong> {client.telefone}</div>}
+              <div>
+                <strong>Nome:</strong> {empresa.cliente}
+              </div>
+              <div>
+                <strong>Email:</strong> {empresa.email}
+              </div>
+              {empresa.telefone && (
+                <div>
+                  <strong>Telefone:</strong> {empresa.telefone}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -75,11 +96,24 @@ export default function EmpresaDetalhesPage() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
-              <div><strong>Nome Fantasia:</strong> {client.nome_fantasia || "-"}</div>
-              <div><strong>CNPJ:</strong> {client.cnpj || "-"}</div>
-              <div><strong>CNAE:</strong> {client.cnae || "-"}</div>
-              <div><strong>Endereço:</strong> {client.endereco || "-"}</div>
-              <div><strong>Data de Criação:</strong> {client.data_criacao ? new Date(client.data_criacao).toLocaleDateString("pt-BR") : "-"}</div>
+              <div>
+                <strong>Nome Fantasia:</strong> {empresa.nome_fantasia || "-"}
+              </div>
+              <div>
+                <strong>CNPJ:</strong> {empresa.cnpj || "-"}
+              </div>
+              <div>
+                <strong>CNAE:</strong> {empresa.cnae || "-"}
+              </div>
+              <div>
+                <strong>Endereço:</strong> {empresa.endereco || "-"}
+              </div>
+              <div>
+                <strong>Data de Criação:</strong>{" "}
+                {empresa.data_criacao
+                  ? new Date(empresa.data_criacao).toLocaleDateString("pt-BR")
+                  : "-"}
+              </div>
             </div>
           </CardContent>
         </Card>
