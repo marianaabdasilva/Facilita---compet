@@ -7,14 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Search, MoreHorizontal, Eye, Plus, UserPlus  } from "lucide-react";
+import { Search, Eye, Plus, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 interface Client {
-  id: string;
+  id_cliente: string;
   cliente: string;
   nome_fantasia: string;
   cnpj: string;
@@ -38,7 +35,6 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null); // 👈 cliente selecionado
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -57,15 +53,11 @@ export default function ClientsPage() {
           },
         });
 
-        
         if (!response.ok) {
           throw new Error("Erro ao buscar clientes");
         }
 
         const data: Client[] = await response.json();
-      
-        
-
         setClients(data);
         setLoading(false);
       } catch (err: any) {
@@ -77,21 +69,19 @@ export default function ClientsPage() {
     fetchClients();
   }, []);
 
-const filteredClients = clients.filter((client) => {
-  const fieldsToSearch = [
-    client.cliente,
-    client.email,
-    client.nome_fantasia,
-    client.CNPJ?.toString(),
-    client.data_criacao ? new Date(client.data_criacao).toLocaleDateString("pt-BR") : ''
-  ]
+  const filteredClients = clients.filter((client) => {
+    const fieldsToSearch = [
+      client.cliente,
+      client.email,
+      client.nome_fantasia,
+      client.CNPJ?.toString(),
+      client.data_criacao ? new Date(client.data_criacao).toLocaleDateString("pt-BR") : "",
+    ];
 
-  return fieldsToSearch.some((field) =>
-    (field || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
-  )
-})
-
-
+    return fieldsToSearch.some((field) =>
+      (field || "").toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <AuthGuard requiredRole="admin">
@@ -103,7 +93,7 @@ const filteredClients = clients.filter((client) => {
               <h1 className="text-3xl font-bold text-gray-900">Gestão de Clientes</h1>
               <p className="text-gray-600 mt-1">Gerencie todos os clientes e seus processos</p>
             </div>
-              <div className="flex gap-3 mt-4 md:mt-0">
+            <div className="flex gap-3 mt-4 md:mt-0">
               <Link href="/abrir-empresa/clientes">
                 <Button className="bg-green-600 hover:bg-green-700">
                   <UserPlus className="w-4 h-4 mr-2" />
@@ -119,7 +109,7 @@ const filteredClients = clients.filter((client) => {
             </div>
           </div>
 
-          {/* Pesquisa */}
+          {/* Filtro */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
@@ -129,6 +119,8 @@ const filteredClients = clients.filter((client) => {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
+                  id="search"
+                  name="search"
                   placeholder="Buscar por nome, email, empresa ou CNPJ..."
                   className="pl-10"
                   value={searchTerm}
@@ -170,7 +162,7 @@ const filteredClients = clients.filter((client) => {
                     <TableBody>
                       {filteredClients.length > 0 ? (
                         filteredClients.map((client) => (
-                          <TableRow key={client.id}>
+                          <TableRow key={`row-${client.id_cliente}-${client.CNPJ || client.nome_fantasia}`}>
                             <TableCell>
                               <div>
                                 <div className="font-medium text-gray-900">{client.cliente}</div>
@@ -185,23 +177,12 @@ const filteredClients = clients.filter((client) => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <Link href={`/clientes/empresas/${client.CNPJ}`}>
-                                  <DropdownMenuItem asChild>
-                                    <div className="flex items-center cursor-pointer">
-                                      <Eye className="w-4 h-4 mr-2" />
-                                      Visualizar
-                                    </div>
-                                  </DropdownMenuItem>
-                                </Link>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <Link href={`/admin/clients/empresas/${client.id_cliente}`}>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Visualizar
+                                </Button>
+                              </Link>
                             </TableCell>
                           </TableRow>
                         ))
