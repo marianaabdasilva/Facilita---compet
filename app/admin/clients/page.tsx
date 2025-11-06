@@ -12,7 +12,7 @@ import Link from "next/link";
 
 interface Client {
   id_cliente: string;
-  id_empresa: string;
+  id_CNPJ: string;
   cliente: string;
   nome_fantasia: string;
   cnpj: string;

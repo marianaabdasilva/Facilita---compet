@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 
 interface Empresa {
-  id_empresa: string; // 👈 identificador da empresa (depois você confirma o nome no backend)
+  id_CNPJ: string; // 👈 identificador da empresa (depois você confirma o nome no backend)
   id_cliente: string;
   cliente: string;
   email: string;
@@ -44,7 +44,7 @@ export default function EmpresaDetalhesPage() {
         console.log("DADOS RETORNADOS PELA API:", data);
 
         // 👉 Aqui você filtra pelo identificador da empresa (ajuste o campo quando confirmar)
-        const found = data.find((e) => String(e.id_empresa) === String(id));
+        const found = data.find((e) => String(e.id_CNPJ) === String(id));
 
         if (!found) throw new Error("Empresa não encontrada");
         setEmpresa(found);
