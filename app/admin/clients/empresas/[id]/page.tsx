@@ -10,22 +10,32 @@ import {
   CardContent,
   CardDescription,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface Empresa {
-  id_empresa: string; // 👈 identificador da empresa (depois você confirma o nome no backend)
-  id_cliente: string;
-  cliente: string;
-  email: string;
+  id_empresa?: string; // identificador único da empresa (ajuste depois conforme o backend)
+  id_cliente?: number;
+  cliente?: string;
+  email?: string;
   telefone?: string;
   nome_fantasia?: string;
-  cnpj?: string;
+  cnpj?: string | number;
   cnae?: string;
   data_criacao?: string;
   endereco?: string;
+  documentos?: Documento[]; // campo futuro (quando a API retornar)
+}
+
+interface Documento {
+  id: number;
+  nome: string;
+  tipo: string;
+  dataEnvio: string;
+  link?: string;
 }
 
 export default function EmpresaDetalhesPage() {
-  const { id } = useParams(); // vem da URL: /empresas/[id]
+  const { id } = useParams(); // /empresas/[id]
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,10 +53,11 @@ export default function EmpresaDetalhesPage() {
         const data: Empresa[] = await res.json();
         console.log("DADOS RETORNADOS PELA API:", data);
 
-        // 👉 Aqui você filtra pelo identificador da empresa (ajuste o campo quando confirmar)
+        // Filtra pela empresa (ajustar o campo conforme o backend)
         const found = data.find((e) => String(e.id_empresa) === String(id));
+        if (!found)
+          throw new Error("Empresa não encontrada (verifique se o campo id_empresa existe no backend)");
 
-        if (!found) throw new Error("Empresa não encontrada");
         setEmpresa(found);
       } catch (err: any) {
         setError(err.message);
@@ -64,57 +75,83 @@ export default function EmpresaDetalhesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 p-6">
         <h1 className="text-3xl font-bold">Detalhes da Empresa</h1>
 
+        {/* Card: informações principais */}
         <Card>
           <CardHeader>
             <CardTitle>Cliente</CardTitle>
-            <CardDescription>Informações do cliente</CardDescription>
+            <CardDescription>Informações do cliente relacionadas a esta empresa</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <strong>Nome:</strong> {empresa.cliente}
-              </div>
-              <div>
-                <strong>Email:</strong> {empresa.email}
-              </div>
-              {empresa.telefone && (
-                <div>
-                  <strong>Telefone:</strong> {empresa.telefone}
-                </div>
-              )}
+          <CardContent className="grid md:grid-cols-2 gap-4">
+            <div><strong>Nome:</strong> {empresa.cliente || "-"}</div>
+            <div><strong>Email:</strong> {empresa.email || "-"}</div>
+            <div><strong>Telefone:</strong> {empresa.telefone || "-"}</div>
+            <div><strong>Nome Fantasia:</strong> {empresa.nome_fantasia || "-"}</div>
+            <div><strong>CNPJ:</strong> {empresa.cnpj ?? "-"}</div>
+            <div><strong>CNAE:</strong> {empresa.cnae || "-"}</div>
+            <div><strong>Endereço:</strong> {empresa.endereco || "-"}</div>
+            <div>
+              <strong>Data de Criação:</strong>{" "}
+              {empresa.data_criacao
+                ? new Date(empresa.data_criacao).toLocaleDateString("pt-BR")
+                : "-"}
             </div>
+            <div><strong>ID Empresa (esperado):</strong> {empresa.id_empresa ?? <span className="text-sm text-gray-500">insira o id_empresa aqui</span>}</div>
+            <div><strong>ID Cliente:</strong> {empresa.id_cliente ?? "-"}</div>
           </CardContent>
         </Card>
 
+        <Separator />
+
+        {/* Card: documentos — estrutura pronta, sem mocks */}
         <Card>
           <CardHeader>
-            <CardTitle>Empresa</CardTitle>
-            <CardDescription>Informações da empresa</CardDescription>
+            <CardTitle>Documentos da Empresa</CardTitle>
+            <CardDescription>
+              Área reservada para exibir os documentos enviados.  
+              <span className="text-gray-500 ml-1">Insira o link da rota aqui quando disponível.</span>
+            </CardDescription>
           </CardHeader>
+
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <strong>Nome Fantasia:</strong> {empresa.nome_fantasia || "-"}
+            {empresa.documentos && empresa.documentos.length > 0 ? (
+              <div className="space-y-3">
+                {empresa.documentos.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between border rounded-lg p-3"
+                  >
+                    <div>
+                      <p className="font-medium">{doc.nome}</p>
+                      <p className="text-sm text-gray-500">
+                        Tipo: {doc.tipo} • Enviado em: {doc.dataEnvio}
+                      </p>
+                    </div>
+                    {doc.link ? (
+                      <a
+                        href={doc.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Abrir
+                      </a>
+                    ) : (
+                      <span className="text-sm italic text-gray-500">
+                        Inserir link da rota aqui
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div>
-                <strong>CNPJ:</strong> {empresa.cnpj || "-"}
-              </div>
-              <div>
-                <strong>CNAE:</strong> {empresa.cnae || "-"}
-              </div>
-              <div>
-                <strong>Endereço:</strong> {empresa.endereco || "-"}
-              </div>
-              <div>
-                <strong>Data de Criação:</strong>{" "}
-                {empresa.data_criacao
-                  ? new Date(empresa.data_criacao).toLocaleDateString("pt-BR")
-                  : "-"}
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-500 italic">
+                Nenhum documento encontrado.  
+                (Adicione a lógica de busca assim que a rota da API estiver pronta.)
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
