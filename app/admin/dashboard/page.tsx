@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import axios from "axios"
 import { AuthGuard } from "@/components/auth-guard"
 import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,43 +32,20 @@ export default function AdminDashboard() {
     pendingRequests: 0,
   })
 
-  // Requisições recentes ainda mockadas
-  const recentRequests = [
-    {
-      id: "REQ-001",
-      clientName: "João Silva",
-      company: "Silva Comércio LTDA",
-      type: "Abertura de CNPJ",
-      status: "Aguardando Link",
-      createdAt: "2024-01-22",
-    },
-    {
-      id: "REQ-002",
-      clientName: "Maria Santos",
-      company: "Santos & Associados",
-      type: "Alteração Contratual",
-      status: "Link Enviado",
-      createdAt: "2024-01-21",
-    },
-    {
-      id: "REQ-003",
-      clientName: "Pedro Costa",
-      company: "Costa Transportes",
-      type: "Fechamento de CNPJ",
-      status: "Documentos Recebidos",
-      createdAt: "2024-01-20",
-    },
-  ]
+  // Estado para solicitações recentes
+  const [recentRequests, setRecentRequests] = useState<any[]>([])
+  const [loadingRecent, setLoadingRecent] = useState<boolean>(true)
+  const [loadingStats, setLoadingStats] = useState<boolean>(true)
 
-  // Funções auxiliares para cores e ícones
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Documentos Recebidos":
         return "bg-green-100 text-green-700"
       case "Link Enviado":
         return "bg-blue-100 text-blue-700"
+      case "Pendente":
       case "Aguardando Link":
-        return "bg-orange-100 text-orange-700"
+        return "bg-yellow-100 text-yellow-700"
       default:
         return "bg-gray-100 text-gray-700"
     }
@@ -79,6 +57,7 @@ export default function AdminDashboard() {
         return <CheckCircle className="w-4 h-4" />
       case "Link Enviado":
         return <ExternalLink className="w-4 h-4" />
+      case "Pendente":
       case "Aguardando Link":
         return <Clock className="w-4 h-4" />
       default:
@@ -86,20 +65,23 @@ export default function AdminDashboard() {
     }
   }
 
-  // Fetch backend para os cards (sem exibir erro)
+  // Busca estatísticas (dashboard)
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) return
-
     const fetchStats = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setLoadingStats(false)
+        return
+      }
+
       try {
+        setLoadingStats(true)
         const res = await fetch("https://projeto-back-ten.vercel.app/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         })
 
         if (res.ok) {
           const data = await res.json()
-
           setStats({
             totalClients: data.totalClientes ?? 0,
             totalCNPJs: data.totalCNPJS ?? 0,
@@ -107,19 +89,84 @@ export default function AdminDashboard() {
             completedThisMonth: data.completedThisMonth ?? 0,
             pendingRequests: data.totalPendentes ?? 0,
           })
+        } else {
+          console.error("Falha ao buscar dashboard:", res.status, await res.text())
         }
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error)
+      } finally {
+        setLoadingStats(false)
       }
     }
 
     fetchStats()
   }, [])
 
-  // Se quiser debugar mudanças no estado:
+  // Busca solicitações recentes integradas ao backend (processos + clientes + empresas)
   useEffect(() => {
-  }, [stats])
+    const fetchRecentRequests = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setLoadingRecent(false)
+        return
+      }
 
+      try {
+        setLoadingRecent(true)
+
+        const [processosResp, clientesResp, empresasResp] = await Promise.all([
+          axios.get("https://projeto-back-ten.vercel.app/processos", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("https://projeto-back-ten.vercel.app/clientes", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ])
+
+        // Mapeia clientes
+        const clientesMap = (clientesResp.data || []).reduce((acc: any, c: any) => {
+          acc[c.id_cliente] = { name: c.nome, email: c.email }
+          return acc
+        }, {})
+
+        // Mapeia empresas
+        const empresasMap = (empresasResp.data || []).reduce((acc: any, e: any) => {
+          acc[e.id_cnpj] = { name: e.nome, cnpj: e.numero_cnpj }
+          return acc
+        }, {})
+
+        // Formata processos
+        const formatted = (processosResp.data || []).map((p: any) => ({
+          id: p.id_processo,
+          clientName: clientesMap[p.id_cliente]?.name || "Cliente não encontrado",
+          company: empresasMap[p.id_cnpj]?.name || "Empresa não encontrada",
+          type: p.tipo || "Não informado",
+          status: p.status_link || "Pendente",
+          createdAt: p.data_atualizacao || p.created_at || new Date().toISOString(),
+        }))
+
+        // Ordena por data decrescente e pega os 3 mais recentes
+        const sorted = formatted
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 3)
+
+        setRecentRequests(sorted)
+      } catch (error) {
+        console.error("Erro ao buscar solicitações recentes:", error)
+        setRecentRequests([])
+      } finally {
+        setLoadingRecent(false)
+      }
+    }
+
+    fetchRecentRequests()
+  }, [])
+
+  // Pending count para botão do header (fallback para stats.pendingRequests)
+  const pendingCount = stats.pendingRequests ?? recentRequests.filter((r) => r.status === "Pendente" || r.status === "Aguardando Link").length
 
   return (
     <AuthGuard requiredRole="admin">
@@ -131,11 +178,11 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Dashboard Administrativo</h1>
               <p className="text-gray-600 mt-1">Visão geral do sistema e métricas principais</p>
             </div>
-            {stats.pendingRequests > 0 && (
+            {pendingCount > 0 && (
               <Link href="/admin/requests">
                 <Button className="mt-4 md:mt-0 bg-red-600 hover:bg-red-700">
                   <Bell className="w-4 h-4 mr-2" />
-                  {stats.pendingRequests} Solicitações Pendentes
+                  {pendingCount} Solicitações Pendentes
                 </Button>
               </Link>
             )}
@@ -144,16 +191,18 @@ export default function AdminDashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link href="/admin/clients">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-                <Users className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{stats.totalClients}</div>
-                <p className="text-xs text-muted-foreground">+12% em relação ao mês anterior</p>
-              </CardContent>
-            </Card>
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {loadingStats ? "—" : stats.totalClients}
+                  </div>
+                  <p className="text-xs text-muted-foreground">+12% em relação ao mês anterior</p>
+                </CardContent>
+              </Card>
             </Link>
 
             <Card className="border-0 shadow-lg">
@@ -162,7 +211,9 @@ export default function AdminDashboard() {
                 <Building2 className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats.totalCNPJs}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {loadingStats ? "—" : stats.totalCNPJs}
+                </div>
                 <p className="text-xs text-muted-foreground">+8% em relação ao mês anterior</p>
               </CardContent>
             </Card>
@@ -173,7 +224,9 @@ export default function AdminDashboard() {
                 <FileText className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{stats.activeProcesses}</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {loadingStats ? "—" : stats.activeProcesses}
+                </div>
                 <p className="text-xs text-muted-foreground">Em andamento no momento</p>
               </CardContent>
             </Card>
@@ -184,7 +237,9 @@ export default function AdminDashboard() {
                 <Bell className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats.pendingRequests}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {loadingStats ? "—" : stats.pendingRequests}
+                </div>
                 <p className="text-xs text-muted-foreground">Aguardando geração de link</p>
               </CardContent>
             </Card>
@@ -209,32 +264,39 @@ export default function AdminDashboard() {
                   </div>
                   <CardDescription>Últimas solicitações de processos</CardDescription>
                 </CardHeader>
+
                 <CardContent>
                   <div className="space-y-4">
-                    {recentRequests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                            {getStatusIcon(request.status)}
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900">{request.type}</h4>
-                            <p className="text-sm text-gray-600">
-                              {request.clientName} - {request.company}
-                            </p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">
-                                {new Date(request.createdAt).toLocaleDateString("pt-BR")}
-                              </span>
+                    {loadingRecent ? (
+                      <p className="text-gray-500">Carregando solicitações...</p>
+                    ) : recentRequests.length === 0 ? (
+                      <p className="text-gray-500">Nenhuma solicitação recente encontrada.</p>
+                    ) : (
+                      recentRequests.map((request) => (
+                        <div key={request.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                              {getStatusIcon(request.status)}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">{request.type}</h4>
+                              <p className="text-sm text-gray-600">
+                                {request.clientName} - {request.company}
+                              </p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                <span className="text-xs text-gray-500">
+                                  {new Date(request.createdAt).toLocaleDateString("pt-BR")}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <Badge className={getStatusColor(request.status)}>{request.status}</Badge>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <Badge className={getStatusColor(request.status)}>{request.status}</Badge>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -249,15 +311,15 @@ export default function AdminDashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Processos Concluídos</span>
-                    <span className="text-lg font-bold text-green-600">{stats.completedThisMonth}</span>
+                    <span className="text-lg font-bold text-green-600">{loadingStats ? "—" : stats.completedThisMonth}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Aguardando Link</span>
-                    <span className="text-lg font-bold text-red-600">{stats.pendingRequests}</span>
+                    <span className="text-lg font-bold text-red-600">{loadingStats ? "—" : stats.pendingRequests}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Em Andamento</span>
-                    <span className="text-lg font-bold text-orange-600">{stats.activeProcesses}</span>
+                    <span className="text-lg font-bold text-orange-600">{loadingStats ? "—" : stats.activeProcesses}</span>
                   </div>
                 </CardContent>
               </Card>
