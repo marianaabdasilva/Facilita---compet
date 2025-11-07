@@ -5,8 +5,21 @@ import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Search, Eye, Plus, UserPlus } from "lucide-react";
 import Link from "next/link";
 
@@ -137,10 +150,6 @@ export default function ClientsPage() {
             </CardContent>
           </Card>
 
-          {/* Estado de carregamento/erro */}
-          {loading && <p className="text-gray-500">Carregando clientes...</p>}
-          {error && <p className="text-red-600">{error}</p>}
-
           {/* Tabela */}
           {!loading && !error && (
             <Card className="border-0 shadow-lg">
@@ -163,14 +172,31 @@ export default function ClientsPage() {
                     <TableBody>
                       {filteredClients.length > 0 ? (
                         filteredClients.map((client) => (
-                          <TableRow key={`row-${client.id_cliente}-${client.CNPJ || client.nome_fantasia}`}>
+                          <TableRow key={`row-${client.id_cliente}-${client.id_CNPJ}`}>
+                            {/* CLIENTE */}
                             <TableCell>
                               <div>
-                                <div className="font-medium text-gray-900">{client.cliente}</div>
+                                <Link
+                                  href={`/admin/clients/detalhes/${client.id_cliente}`}
+                                  className="font-medium text-gray-900 hover:underline"
+                                >
+                                  {client.cliente}
+                                </Link>
                                 <div className="text-sm text-gray-500">{client.email}</div>
                               </div>
                             </TableCell>
-                            <TableCell>{client.nome_fantasia}</TableCell>
+
+                            {/* EMPRESA */}
+                            <TableCell>
+                              <Link
+                                href={`/admin/clients/${client.id_cliente}/empresas/${client.id_CNPJ}`}
+                                className="font-medium text-gray-900 hover:underline"
+                              >
+                                {client.nome_fantasia}
+                              </Link>
+                            </TableCell>
+
+                            {/* DEMAIS CAMPOS */}
                             <TableCell className="font-mono text-sm">{client.CNPJ}</TableCell>
                             <TableCell>
                               <div className="text-sm text-gray-500">
@@ -178,7 +204,9 @@ export default function ClientsPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Link href={`/admin/clients/empresas/${client.id_cliente}`}>
+                              <Link
+                                href={`/admin/clients/${client.id_cliente}/empresas/${client.id_CNPJ}`}
+                              >
                                 <Button variant="ghost" size="sm">
                                   <Eye className="w-4 h-4 mr-2" />
                                   Visualizar

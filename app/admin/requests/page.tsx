@@ -169,9 +169,32 @@ export default function RequestsPage() {
           {/* CARD DO FLUXO */}
           <Alert className="border-blue-200 bg-blue-50">
             <Info className="h-5 w-5 text-blue-600" />
-            <AlertTitle className="text-blue-900 font-semibold">Fluxo de Abertura de Empresa</AlertTitle>
-            <AlertDescription className="mt-2 text-blue-800">
-              O cliente solicita → você cadastra → gera link → cliente envia docs → análise → finaliza 🎯
+            <AlertTitle className="text-blue-900 font-semibold">Processo de Abertura de Empresa</AlertTitle>
+            <AlertDescription className="text-blue-800 mt-2">
+              <ol className="list-decimal list-inside space-y-2">
+                <li>
+                  <strong>Recebimento da Solicitação:</strong> Cliente solicita abertura de empresa
+                </li>
+                <li>
+                  <strong>Criação de cliente:</strong> Admin cria cadastro do cliente no sistema
+                </li>
+                <li>
+                  <strong>Geração de Link:</strong> Admin gera link personalizado para envio de documentos
+                </li>
+                <li>
+                  <strong>Envio de Documentos:</strong> Cliente acessa o link e envia toda documentação necessária (RG,
+                  CPF, Comprovante de Endereço, etc.)
+                </li>
+                <li>
+                  <strong>Análise Documental:</strong> Equipe verifica e valida todos os documentos recebidos
+                </li>
+                <li>
+                  <strong>Registro na Junta Comercial:</strong> Processo de registro e obtenção do CNPJ
+                </li>
+                <li>
+                  <strong>Finalização:</strong> Cliente recebe documentação da empresa constituída
+                </li>
+              </ol>
             </AlertDescription>
           </Alert>
 
