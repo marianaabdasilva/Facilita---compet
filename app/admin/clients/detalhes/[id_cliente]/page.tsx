@@ -242,8 +242,8 @@ export default function DetalhesClientePage() {
                         <TableRow key={String(empresa.id_CNPJ ?? empresa.cnpj ?? empresa.CNPJ ?? Math.random())}>
                           <TableCell className="font-medium">
                             <button
-                              onClick={() => router.push(`/clients/${cliente.id_cliente}/empresas/${empresa.id_CNPJ}`)}
-                              className="text-blue-600 hover:underline flex items-center gap-2"
+                              onClick={() => router.push(`/admin/clients/${cliente.id_cliente}/empresas/${empresa.id_CNPJ}`)}
+                                className="font-medium text-gray-900 hover:underline"
                             >
                               <Factory className="w-4 h-4 text-gray-600" />
                               {empresa.nome_fantasia}
