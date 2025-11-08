@@ -88,13 +88,15 @@ export default function HomePage() {
           </div>
 
           {/* Imagem lado direito */}
-          <div className="flex justify-center md:justify-end">
+         {/* Imagem lado direito (oculta no mobile) */}
+          <div className="hidden md:flex justify-center md:justify-end">
             <img
               src="/elementos.png"
               alt="Ilustração empresarial"
-              className="max-150 w-150"
+              className="max-w-md w-full"
             />
           </div>
+
         </div>
       </section>
 

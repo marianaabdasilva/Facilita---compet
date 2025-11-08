@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Select, { SingleValue } from "react-select";
+import Select from "react-select";
 import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LinkIcon, Copy, CheckCircle, Trash2, Eye, Search } from "lucide-react";
+import { LinkIcon, Copy, CheckCircle, Trash2, Search } from "lucide-react";
 
 // Tipos
 interface ClientesOption {
@@ -33,19 +33,16 @@ interface ClientesOption {
   label: string;
   id_cliente: number;
 }
-
 interface ProcessosOption {
   value: string;
   label: string;
   id_tipo_processo: number;
 }
-
 interface EmpresaOption {
   value: string;
   label: string;
   id_cnpj: number;
 }
-
 interface GeneratedLink {
   id: string;
   clientName: string;
@@ -62,30 +59,24 @@ export default function GenerateLinksPage() {
   const [allClientes, setAllClientes] = useState<ClientesOption[]>([]);
   const [allProcessos, setAllProcessos] = useState<ProcessosOption[]>([]);
   const [clientCompanies, setClientCompanies] = useState<EmpresaOption[]>([]);
-
   const [selectedClient, setSelectedClient] = useState<ClientesOption | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<EmpresaOption | null>(null);
   const [selectedProcess, setSelectedProcess] = useState<ProcessosOption | null>(null);
-
   const [generatedLinks, setGeneratedLinks] = useState<GeneratedLink[]>([]);
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchLink, setSearchLink] = useState("");
 
-  // Buscar clientes
+  // Buscar dados
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      const data: Array<{ id_cliente: number; nome: string }> = resp.data;
-
+      const data = resp.data;
       setAllClientes(
-        data.map((c) => ({
+        data.map((c: any) => ({
           value: String(c.id_cliente),
           label: c.nome,
           id_cliente: c.id_cliente,
@@ -96,20 +87,15 @@ export default function GenerateLinksPage() {
     }
   };
 
-
   const fetchProcessos = async () => {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/tiposProcesso", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      const data: Array<{ id_tipo_processo: number; tipo: string }> = resp.data;
-
+      const data = resp.data;
       setAllProcessos(
-        data.map((p) => ({
+        data.map((p: any) => ({
           value: String(p.id_tipo_processo),
           label: p.tipo,
           id_tipo_processo: p.id_tipo_processo,
@@ -120,168 +106,139 @@ export default function GenerateLinksPage() {
     }
   };
 
-
-const fetchAllCompanies = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const resp = await axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return resp.data; // array com todas as empresas
-  } catch (err) {
-    console.error("Erro ao buscar todas as empresas:", err);
-    return [];
-  }
-};
-
-const fetchGeneratedLinks = async () => {
-  try {
-    const token = localStorage.getItem("token");
-
-    // Buscar links gerados
-    const respLinks = await axios.get("https://projeto-back-ten.vercel.app/processos", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const linksData = respLinks.data;
-
-    console.log("Links recebidos do backend:", linksData);
-
-    // Map de clientes
-    const clientesMap = allClientes.reduce((acc, c) => {
-      acc[c.id_cliente] = c.label;
-      return acc;
-    }, {} as Record<number, string>);
-
-    // Map de empresas (todas as empresas carregadas de uma vez)
-    const allEmpresas = await fetchAllCompanies();
-    const empresasMap = allEmpresas.reduce((acc: Record<number, string>, e: any) => {
-      acc[e.id_cnpj] = `${e.nome} (CNPJ: ${e.numero_cnpj})`;
-      return acc;
-    }, {});
-    console.log("Empresas carregadas:", allEmpresas);
-
-    // Formatar links
-    const formattedLinks: GeneratedLink[] = linksData.map((item: any) => ({
-      id: String(item.id_processo),
-      clientName: clientesMap[item.id_cliente] || "Cliente não informado",
-      companyName: empresasMap[item.id_cnpj] || "Empresa não informado",
-      processType: item.tipo || "Tipo não informado",
-      link: item.link || "Sem link",
-      status: item.status_link || "Desconhecido",
-      createdAt: item.data_atualizacao || new Date().toISOString(),
-      expiresAt: item.data_expiracao || "",
-      used: item.status_link?.toLowerCase() === "usado",
-    }));
-
-
-
-
-    setGeneratedLinks(formattedLinks);
-  } catch (error) {
-    console.error("Erro ao buscar links gerados:", error);
-  }
-};
-
-// UseEffect principal
-useEffect(() => {
-  const loadData = async () => {
-    await fetchClientes();
-    await fetchProcessos();
-  };
-  loadData();
-}, []);
-
-useEffect(() => {
-  if (allClientes.length > 0) {
-    fetchGeneratedLinks(); // agora já vai ter todas as empresas
-  }
-}, [allClientes]);
-
-useEffect(() => {
-  const loadClientCompanies = async () => {
-    if (!selectedClient) {
-      setClientCompanies([]);
-      setSelectedCompany(null);
-      return;
-    }
-
+  const fetchAllCompanies = async () => {
     try {
       const token = localStorage.getItem("token");
-      const resp = await axios.get(
-        `https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-);
-
-
-      const empresas = resp.data.map((e: any) => ({
-        value: String(e.id_cnpj),
-        label: `${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"})`,
-        id_cnpj: e.id_cnpj,
-      }));
-
-      setClientCompanies(empresas);
-      setSelectedCompany(null);
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return resp.data;
     } catch (err) {
-      console.error("Erro ao buscar empresas do cliente:", err);
-      setClientCompanies([]);
-      setSelectedCompany(null);
+      console.error("Erro ao buscar todas as empresas:", err);
+      return [];
     }
   };
 
-  loadClientCompanies();
-}, [selectedClient]); // depende do cliente selecionado
+  const fetchGeneratedLinks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const respLinks = await axios.get("https://projeto-back-ten.vercel.app/processos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const linksData = respLinks.data;
 
+      const clientesMap = allClientes.reduce((acc, c) => {
+        acc[c.id_cliente] = c.label;
+        return acc;
+      }, {} as Record<number, string>);
+
+      const allEmpresas = await fetchAllCompanies();
+      const empresasMap = allEmpresas.reduce((acc: Record<number, string>, e: any) => {
+        acc[e.id_cnpj] = `${e.nome} (CNPJ: ${e.numero_cnpj})`;
+        return acc;
+      }, {});
+
+      const formattedLinks: GeneratedLink[] = linksData.map((item: any) => ({
+        id: String(item.id_processo),
+        clientName: clientesMap[item.id_cliente] || "Cliente não informado",
+        companyName: empresasMap[item.id_cnpj] || "Empresa não informada",
+        processType: item.tipo || "Tipo não informado",
+        link: item.link || "Sem link",
+        status: item.status_link || "Desconhecido",
+        createdAt: item.data_atualizacao || new Date().toISOString(),
+        expiresAt: item.data_expiracao || "",
+        used: item.status_link?.toLowerCase() === "usado",
+      }));
+
+      setGeneratedLinks(formattedLinks);
+    } catch (error) {
+      console.error("Erro ao buscar links gerados:", error);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      await fetchClientes();
+      await fetchProcessos();
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (allClientes.length > 0) fetchGeneratedLinks();
+  }, [allClientes]);
+
+  useEffect(() => {
+    const loadClientCompanies = async () => {
+      if (!selectedClient) {
+        setClientCompanies([]);
+        setSelectedCompany(null);
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem("token");
+        const resp = await axios.get(
+          `https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const empresas = resp.data.map((e: any) => ({
+          value: String(e.id_cnpj),
+          label: `${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"})`,
+          id_cnpj: e.id_cnpj,
+        }));
+
+        setClientCompanies(empresas);
+        setSelectedCompany(null);
+      } catch (err) {
+        console.error("Erro ao buscar empresas do cliente:", err);
+        setClientCompanies([]);
+        setSelectedCompany(null);
+      }
+    };
+    loadClientCompanies();
+  }, [selectedClient]);
 
   const handleGenerateLink = async () => {
-  if (!selectedClient || !selectedCompany || !selectedProcess) return;
+    if (!selectedClient || !selectedCompany || !selectedProcess) return;
+    setIsGenerating(true);
 
-  setIsGenerating(true);
+    try {
+      const requestData = {
+        id_cliente: selectedClient.id_cliente,
+        id_cnpj: selectedCompany.id_cnpj,
+        id_tipo_processo: selectedProcess.id_tipo_processo,
+        status: "pendente",
+      };
 
-  try {
-    const requestData = {
-      id_cliente: selectedClient.id_cliente,
-      id_cnpj: selectedCompany.id_cnpj,
-      id_tipo_processo: selectedProcess.id_tipo_processo,
-      status: "pendente", 
-    };
+      const response = await axios.post(
+        "https://projeto-back-ten.vercel.app/processo",
+        requestData,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
 
+      const { link, data_expiracao, id } = response.data;
+      const newLink: GeneratedLink = {
+        id,
+        clientName: selectedClient.label,
+        companyName: selectedCompany.label,
+        processType: selectedProcess.label,
+        link,
+        status: "Ativo",
+        createdAt: new Date().toISOString(),
+        expiresAt: data_expiracao,
+        used: false,
+      };
 
-    const response = await axios.post(
-      "https://projeto-back-ten.vercel.app/processo", 
-      requestData,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-
-    const { link, data_expiracao, id } = response.data; 
-
-
-    const newLink: GeneratedLink = {
-      id: id,  
-      clientName: selectedClient.label,
-      companyName: selectedCompany.label,
-      processType: selectedProcess.label,
-      link,
-      status: "Ativo",
-      createdAt: new Date().toISOString(),
-      expiresAt: data_expiracao,
-      used: false,
-    };
-
-    setGeneratedLinks((prev) => [...prev, newLink]);
-    setGeneratedLink(link);
-
-  } catch (error) {
-    console.error("Erro ao gerar o link:", error);
-  } finally {
-    setIsGenerating(false);
-  }
-};
-
-
+      setGeneratedLinks((prev) => [...prev, newLink]);
+      setGeneratedLink(link);
+    } catch (error) {
+      console.error("Erro ao gerar o link:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
 
@@ -310,27 +267,27 @@ useEffect(() => {
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Geração de Links</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Geração de Links</h1>
+            <p className="text-gray-600 text-sm sm:text-base mt-1">
               Crie links personalizados para upload de documentos
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Formulário */}
             <div className="lg:col-span-1">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-md sm:shadow-lg">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
+                  <CardTitle className="flex items-center text-lg sm:text-xl">
                     <LinkIcon className="w-5 h-5 mr-2" /> Gerar Novo Link
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-sm sm:text-base">
                     Selecione o cliente, empresa e tipo de processo
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 sm:space-y-5">
                   <div className="space-y-2">
                     <Label>Cliente</Label>
                     <Select
@@ -338,7 +295,6 @@ useEffect(() => {
                       value={selectedClient}
                       onChange={(opt) => setSelectedClient(opt)}
                       placeholder="Selecione um cliente"
-                      className="z-50"
                     />
                   </div>
 
@@ -350,7 +306,6 @@ useEffect(() => {
                         value={selectedCompany}
                         onChange={(opt) => setSelectedCompany(opt)}
                         placeholder="Selecione uma empresa"
-                        className="z-40"
                       />
                     </div>
                   )}
@@ -362,7 +317,6 @@ useEffect(() => {
                       value={selectedProcess}
                       onChange={(opt) => setSelectedProcess(opt)}
                       placeholder="Selecione o tipo de processo"
-                      className="z-30"
                     />
                   </div>
 
@@ -377,12 +331,14 @@ useEffect(() => {
                   </Button>
 
                   {generatedLink && (
-                    <Alert>
+                    <Alert className="mt-4">
                       <CheckCircle className="h-4 w-4" />
                       <AlertDescription>
                         <div className="space-y-2">
-                          <p className="font-medium">Link gerado com sucesso!</p>
-                          <div className="flex items-center space-x-2">
+                          <p className="font-medium text-sm sm:text-base">
+                            Link gerado com sucesso!
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <Input value={generatedLink} readOnly className="text-xs" />
                             <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
                               <Copy className="w-3 h-3" />
@@ -398,10 +354,12 @@ useEffect(() => {
 
             {/* Tabela de links gerados */}
             <div className="lg:col-span-2">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-md sm:shadow-lg">
                 <CardHeader>
-                  <CardTitle>Links Gerados</CardTitle>
-                  <CardDescription>Histórico de links criados</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl">Links Gerados</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
+                    Histórico de links criados
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -419,7 +377,7 @@ useEffect(() => {
                     </div>
 
                     <div className="overflow-x-auto">
-                      <Table>
+                      <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead>Cliente</TableHead>
@@ -450,7 +408,11 @@ useEffect(() => {
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center space-x-2">
-                                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => copyToClipboard(link.link)}
+                                  >
                                     <Copy className="w-3 h-3" />
                                   </Button>
                                   <Button size="sm" variant="ghost" className="text-red-600">

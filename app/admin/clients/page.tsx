@@ -63,7 +63,7 @@ export default function ClientsPage() {
         const response = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -102,20 +102,24 @@ export default function ClientsPage() {
       <AdminLayout>
         <div className="space-y-8">
           {/* Cabeçalho */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Gestão de Clientes</h1>
-              <p className="text-gray-600 mt-1">Gerencie todos os clientes e seus processos</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">
+                Gestão de Clientes
+              </h1>
+              <p className="text-gray-600 text-sm md:text-base mt-1 text-center md:text-left">
+                Gerencie todos os clientes e seus processos
+              </p>
             </div>
-            <div className="flex gap-3 mt-4 md:mt-0">
-              <Link href="/abrir-empresa/clientes">
-                <Button className="bg-green-600 hover:bg-green-700">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <Link href="/abrir-empresa/clientes" className="w-full sm:w-auto">
+                <Button className="bg-green-600 hover:bg-green-700 w-full text-sm md:text-base">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Criar Conta de Cliente
                 </Button>
               </Link>
-              <Link href="/abrir-empresa/atividade">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+              <Link href="/abrir-empresa/atividade" className="w-full sm:w-auto">
+                <Button className="bg-blue-600 hover:bg-blue-700 w-full text-sm md:text-base">
                   <Plus className="w-4 h-4 mr-2" />
                   Criar Empresa
                 </Button>
@@ -124,10 +128,12 @@ export default function ClientsPage() {
           </div>
 
           {/* Filtro */}
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-md">
             <CardHeader>
-              <CardTitle>Filtros</CardTitle>
-              <CardDescription>Encontre clientes específicos</CardDescription>
+              <CardTitle className="text-lg md:text-xl">Filtros</CardTitle>
+              <CardDescription className="text-sm md:text-base">
+                Encontre clientes específicos
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="relative">
@@ -136,7 +142,7 @@ export default function ClientsPage() {
                   id="search"
                   name="search"
                   placeholder="Buscar por nome, email, empresa ou CNPJ..."
-                  className="pl-10"
+                  className="pl-10 text-sm md:text-base"
                   value={searchTerm}
                   onChange={(e) => {
                     let value = e.target.value;
@@ -152,14 +158,18 @@ export default function ClientsPage() {
 
           {/* Tabela */}
           {!loading && !error && (
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-md">
               <CardHeader>
-                <CardTitle>Lista de Clientes ({filteredClients.length})</CardTitle>
-                <CardDescription>Todos os clientes cadastrados no sistema</CardDescription>
+                <CardTitle className="text-lg md:text-xl">
+                  Lista de Clientes ({filteredClients.length})
+                </CardTitle>
+                <CardDescription className="text-sm md:text-base">
+                  Todos os clientes cadastrados no sistema
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+                <div className="overflow-x-auto rounded-md">
+                  <Table className="min-w-full text-sm md:text-base">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Cliente</TableHead>
@@ -172,7 +182,10 @@ export default function ClientsPage() {
                     <TableBody>
                       {filteredClients.length > 0 ? (
                         filteredClients.map((client) => (
-                          <TableRow key={`row-${client.id_cliente}-${client.id_CNPJ}`}>
+                          <TableRow
+                            key={`row-${client.id_cliente}-${client.id_CNPJ}`}
+                            className="hover:bg-gray-50"
+                          >
                             {/* CLIENTE */}
                             <TableCell>
                               <div>
@@ -182,7 +195,9 @@ export default function ClientsPage() {
                                 >
                                   {client.cliente}
                                 </Link>
-                                <div className="text-sm text-gray-500">{client.email}</div>
+                                <div className="text-xs md:text-sm text-gray-500">
+                                  {client.email}
+                                </div>
                               </div>
                             </TableCell>
 
@@ -196,20 +211,26 @@ export default function ClientsPage() {
                               </Link>
                             </TableCell>
 
-                            {/* DEMAIS CAMPOS */}
-                            <TableCell className="font-mono text-sm">{client.CNPJ}</TableCell>
+                            {/* CNPJ */}
+                            <TableCell className="font-mono text-xs md:text-sm">
+                              {client.CNPJ}
+                            </TableCell>
+
+                            {/* DATA */}
                             <TableCell>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-xs md:text-sm text-gray-500">
                                 {new Date(client.data_criacao).toLocaleDateString("pt-BR")}
                               </div>
                             </TableCell>
+
+                            {/* AÇÃO */}
                             <TableCell>
                               <Link
                                 href={`/admin/clients/${client.id_cliente}/empresas/${client.id_CNPJ}`}
                               >
                                 <Button variant="ghost" size="sm">
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Visualizar
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  <span className="hidden sm:inline">Visualizar</span>
                                 </Button>
                               </Link>
                             </TableCell>
@@ -217,7 +238,10 @@ export default function ClientsPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-gray-500 py-6">
+                          <TableCell
+                            colSpan={5}
+                            className="text-center text-gray-500 py-6 text-sm"
+                          >
                             Nenhum cliente encontrado.
                           </TableCell>
                         </TableRow>
@@ -227,6 +251,14 @@ export default function ClientsPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Estado de Carregamento ou Erro */}
+          {loading && (
+            <p className="text-center text-gray-500 mt-6">Carregando clientes...</p>
+          )}
+          {error && (
+            <p className="text-center text-red-600 mt-6">Erro: {error}</p>
           )}
         </div>
       </AdminLayout>
