@@ -213,6 +213,7 @@ export default function DetalhesClientePage() {
               <CardDescription>Dados gerais cadastrados</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              <p><strong>Nome do Cliente:</strong> {cliente.cliente ?? "-"}</p>
               <p><strong>Email:</strong> {cliente.email ?? "-"}</p>
               <p><strong>Telefone:</strong> {cliente.telefone ?? "-"}</p>
               <p><strong>Data de criação:</strong> {cliente.data_criacao ? new Date(cliente.data_criacao).toLocaleDateString("pt-BR") : "-"}</p>

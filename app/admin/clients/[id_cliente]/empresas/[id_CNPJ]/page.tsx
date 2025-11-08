@@ -12,31 +12,119 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Factory, Loader2 } from "lucide-react";
+import { ArrowLeft, Factory, Loader2, FileText } from "lucide-react";
 
-interface Empresa {
-  id_CNPJ: string | number;
-  nome_fantasia?: string;
-  CNPJ?: string | number; // número do CNPJ que pode começar com zero
-  cnpj?: string | number; // alternativa
-  cliente?: string;
-  email?: string;
-  telefone?: string;
-  cnae?: string;
-  data_criacao?: string;
-  endereco?: string;
-  id_cliente?: string | number;
-}
+/* ======================================================
+   COMPONENTE AUXILIAR PARA RENDERIZAR E TESTAR DOCUMENTOS
+   ====================================================== */
+const DocumentosList = ({
+  documentos,
+  id_cliente,
+}: {
+  documentos: any[];
+  id_cliente: string | number;
+}) => {
+  const [statusLinks, setStatusLinks] = useState<Record<number, boolean | null>>(
+    {}
+  );
 
+  useEffect(() => {
+    const testarLinks = async () => {
+      const resultados: Record<number, boolean | null> = {};
+
+      for (let i = 0; i < documentos.length; i++) {
+        let linkCorrigido = documentos[i].link;
+        if (linkCorrigido?.includes(":id")) {
+          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
+        }
+
+        try {
+          const res = await fetch(linkCorrigido, { method: "HEAD" });
+          console.log(
+            `🔍 Testando link ${i + 1}:`,
+            linkCorrigido,
+            "→ status:",
+            res.status
+          );
+          resultados[i] = res.ok;
+        } catch (err) {
+          console.error(`❌ Erro ao testar link ${i + 1}:`, linkCorrigido, err);
+          resultados[i] = false;
+        }
+      }
+
+      setStatusLinks(resultados);
+    };
+
+    if (documentos.length > 0) testarLinks();
+  }, [documentos, id_cliente]);
+
+  return (
+    <ul className="space-y-3">
+      {documentos.map((doc, index) => {
+        let linkCorrigido = doc.link;
+        if (linkCorrigido?.includes(":id")) {
+          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
+        }
+
+        const nomeArquivo =
+          linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
+        const status = statusLinks[index];
+
+        return (
+          <li
+            key={`doc-${index}`}
+            className="flex items-center justify-between border p-3 rounded-lg hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-gray-600" />
+              <div>
+                <p className="font-medium">{nomeArquivo}</p>
+                <p className="text-sm text-gray-500 break-all">
+                  {linkCorrigido}
+                </p>
+              </div>
+            </div>
+
+            {status === null || status === undefined ? (
+              <Loader2 className="animate-spin w-4 h-4 text-gray-400" />
+            ) : status ? (
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={linkCorrigido}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Visualizar
+                </a>
+              </Button>
+            ) : (
+              <span className="text-red-500 text-sm font-medium">
+                Indisponível
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+/* ======================================================
+   PÁGINA PRINCIPAL - DETALHES DA EMPRESA
+   ====================================================== */
 export default function EmpresaDetalhesPage() {
   const params = useParams() as { id_cliente?: string; id_CNPJ?: string };
   const { id_cliente, id_CNPJ } = params;
   const router = useRouter();
 
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
+  const [empresa, setEmpresa] = useState<any>(null);
+  const [documentos, setDocumentos] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
+  // === Buscar dados da empresa ===
   useEffect(() => {
     const fetchEmpresa = async () => {
       setLoading(true);
@@ -45,93 +133,74 @@ export default function EmpresaDetalhesPage() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Usuário não autenticado");
 
-        const res = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          const txt = await res.text().catch(() => "");
-          throw new Error(`Erro na requisição: ${res.status} ${txt}`);
-        }
-
-        const data: any = await res.json();
-        console.log("Dados retornados (clientes-detalhes):", data);
-
-        // Se a API já retorna um array de empresas planas (como no seu log), procuramos direto nele:
-        if (Array.isArray(data)) {
-          const found = data.find(
-            (item: any) =>
-              String(item.id_cliente) === String(id_cliente) &&
-              (String(item.id_CNPJ) === String(id_CNPJ) ||
-                String(item.idCNPJ) === String(id_CNPJ) ||
-                String(item.id_empresa) === String(id_CNPJ)) // tentativas alternativas
-          );
-
-          if (!found) {
-            // possibilidade alternativa: a API pode retornar clientes com array "empresas"
-            // vamos verificar se existe um cliente que tenha campo "empresas" e procurar dentro
-            const clienteComEmpresas = data.find(
-              (c: any) => String(c.id_cliente) === String(id_cliente) && Array.isArray(c.empresas)
-            );
-
-            if (clienteComEmpresas) {
-              const innerFound = clienteComEmpresas.empresas.find(
-                (e: any) => String(e.id_CNPJ) === String(id_CNPJ) || String(e.id) === String(id_CNPJ)
-              );
-              if (innerFound) {
-                setEmpresa(innerFound);
-                return;
-              }
-            }
-
-            throw new Error("Empresa não encontrada (verifique id_cliente / id_CNPJ).");
+        const res = await fetch(
+          "https://projeto-back-ten.vercel.app/clientes-detalhes",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
+        );
 
-          setEmpresa(found);
-          return;
-        }
+        if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
 
-        // Se a API retornar um objeto (não array), tentamos caminhos comuns
-        if (typeof data === "object" && data !== null) {
-          // se o endpoint retornar { clientes: [...] } ou similar
-          const maybeArray =
-            data.clientes || data.data || data.empresas || Object.values(data).find(Array.isArray);
-          if (Array.isArray(maybeArray)) {
-            const found = maybeArray.find(
+        const data = await res.json();
+        const found = Array.isArray(data)
+          ? data.find(
               (item: any) =>
                 String(item.id_cliente) === String(id_cliente) &&
-                String(item.id_CNPJ) === String(id_CNPJ)
-            );
-            if (found) {
-              setEmpresa(found);
-              return;
-            }
-          }
-        }
+                (String(item.id_CNPJ) === String(id_CNPJ) ||
+                  String(item.id_empresa) === String(id_CNPJ))
+            )
+          : null;
 
-        throw new Error("Formato de resposta inesperado da API.");
+        if (!found) throw new Error("Empresa não encontrada.");
+        setEmpresa(found);
       } catch (err: any) {
-        console.error("Erro ao buscar empresa:", err);
-        setError(err?.message || "Erro desconhecido");
+        setError(err.message || "Erro ao buscar empresa");
       } finally {
         setLoading(false);
       }
     };
 
-    // só busca se ambos params chegarem (evita execução prematura)
-    if (id_cliente && id_CNPJ) {
-      fetchEmpresa();
-    } else {
-      // params ausentes: mostra mensagem mais clara no console
-      console.warn("Parâmetros ausentes:", { id_cliente, id_CNPJ });
-      setError("Parâmetros da rota ausentes (id_cliente ou id_CNPJ).");
-      setLoading(false);
-    }
+    if (id_cliente && id_CNPJ) fetchEmpresa();
   }, [id_cliente, id_CNPJ]);
 
+  // === Buscar documentos do cliente ===
+  useEffect(() => {
+    const fetchDocs = async () => {
+      if (!id_cliente) return;
+      setLoadingDocs(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `https://projeto-back-ten.vercel.app/documentos/${id_cliente}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok)
+          throw new Error(`Erro ao buscar documentos: ${res.status}`);
+        const data = await res.json();
+        console.log("📦 Documentos recebidos:", data);
+
+        if (!Array.isArray(data)) throw new Error("Formato inválido de resposta.");
+        setDocumentos(data);
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+
+    fetchDocs();
+  }, [id_cliente]);
+
+  // === Loading ===
   if (loading) {
     return (
       <AdminLayout>
@@ -146,11 +215,11 @@ export default function EmpresaDetalhesPage() {
   if (error) {
     return (
       <AdminLayout>
-        <div className="p-6">
-          <p className="text-red-600 text-center mt-6">{error}</p>
-          <div className="text-center mt-6">
-            <Button onClick={() => router.back()}>Voltar</Button>
-          </div>
+        <div className="p-6 text-center">
+          <p className="text-red-600 mt-6">{error}</p>
+          <Button onClick={() => router.back()} className="mt-6">
+            Voltar
+          </Button>
         </div>
       </AdminLayout>
     );
@@ -159,18 +228,17 @@ export default function EmpresaDetalhesPage() {
   if (!empresa) {
     return (
       <AdminLayout>
-        <div className="p-6">
-          <p className="text-gray-500 text-center mt-6">Empresa não encontrada.</p>
-          <div className="text-center mt-6">
-            <Button onClick={() => router.back()}>Voltar</Button>
-          </div>
+        <div className="p-6 text-center">
+          <p className="text-gray-500 mt-6">Empresa não encontrada.</p>
+          <Button onClick={() => router.back()} className="mt-6">
+            Voltar
+          </Button>
         </div>
       </AdminLayout>
     );
   }
 
-  // Normaliza campo CNPJ (tenta vários nomes possíveis)
-  const cnpjNumber = empresa.CNPJ ?? empresa.cnpj ?? empresa.CNPJ ?? "-";
+  const cnpjNumber = empresa.CNPJ ?? empresa.cnpj ?? "-";
 
   return (
     <AdminLayout>
@@ -179,42 +247,45 @@ export default function EmpresaDetalhesPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Factory className="w-6 h-6 text-gray-700" />
-            <h1 className="text-3xl font-bold">{empresa.nome_fantasia ?? "—"}</h1>
+            <h1 className="text-3xl font-bold">
+              {empresa.nome_fantasia ?? "—"}
+            </h1>
           </div>
           <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
           </Button>
         </div>
 
-        {/* Card: informações do cliente */}
-        <Card className="border-0 shadow-lg">
+        {/* Informações do Cliente */}
+        <Card className="shadow-lg border-0">
           <CardHeader>
             <CardTitle>Informações do Cliente</CardTitle>
-            <CardDescription>Dados gerais do cliente associado</CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-4">
             <div>
-              <strong>Nome do Cliente:</strong> {empresa.cliente ?? "-"}
-            </div>
-            <div>
-              <strong>Telefone:</strong> {empresa.telefone ?? "-"}
+              <strong>Nome:</strong> {empresa.cliente ?? "-"}
             </div>
             <div>
               <strong>Email:</strong> {empresa.email ?? "-"}
             </div>
             <div>
+              <strong>Telefone:</strong> {empresa.telefone ?? "-"}
+            </div>
+            <div>
               <strong>Data de Criação:</strong>{" "}
-              {empresa.data_criacao ? new Date(empresa.data_criacao).toLocaleDateString("pt-BR") : "-"}
+              {empresa.data_criacao
+                ? new Date(empresa.data_criacao).toLocaleDateString("pt-BR")
+                : "-"}
             </div>
           </CardContent>
         </Card>
+
         <Separator />
-        {/* Card: informações da empresa */}
-        <Card className="border-0 shadow-lg">
+
+        {/* Informações da Empresa */}
+        <Card className="shadow-lg border-0">
           <CardHeader>
-            <CardTitle>Informações do Empresa</CardTitle>
-            <CardDescription>Dados gerais do empresa associado</CardDescription>
+            <CardTitle>Informações da Empresa</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-4">
             <div>
@@ -230,21 +301,34 @@ export default function EmpresaDetalhesPage() {
               <strong>Endereço:</strong> {empresa.endereco ?? "-"}
             </div>
           </CardContent>
-          </Card>
+        </Card>
 
         <Separator />
 
-        <Card className="border-0 shadow-lg">
+        {/* Documentos */}
+        <Card className="shadow-lg border-0">
           <CardHeader>
             <CardTitle>Documentos</CardTitle>
-            <CardDescription>Área reservada para documentos futuros</CardDescription>
+            <CardDescription>
+              Arquivos disponíveis para este cliente
+            </CardDescription>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-4">
-            <div>
+          <CardContent>
+            {loadingDocs ? (
+              <div className="flex items-center text-gray-500">
+                <Loader2 className="animate-spin w-5 h-5 mr-2" /> Carregando
+                documentos...
+              </div>
+            ) : documentos.length > 0 ? (
+              <DocumentosList
+                documentos={documentos}
+                id_cliente={id_cliente!}
+              />
+            ) : (
               <p className="text-gray-500 italic">
-                Nenhum documento encontrado. (Implementar rota de documentos quando disponível.)
+                Nenhum documento encontrado.
               </p>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
