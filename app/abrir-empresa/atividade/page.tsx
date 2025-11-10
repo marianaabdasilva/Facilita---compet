@@ -15,9 +15,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { CheckCircle, FileText, Home } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 
@@ -42,7 +41,9 @@ export default function AtividadePage() {
 
   // Clientes
   const [allClientes, setAllClientes] = useState<ClientesOption[]>([]);
-  const [selectedClient, setSelectedClient] = useState<ClientesOption | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientesOption | null>(
+    null
+  );
 
   // CNAEs
   const [allCnaes, setAllCnaes] = useState<CnaeOption[]>([]);
@@ -63,11 +64,14 @@ export default function AtividadePage() {
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const resp = await axios.get(
+        "https://projeto-back-ten.vercel.app/clientes",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data: Array<{ id_cliente: number; nome: string }> = resp.data;
 
@@ -87,7 +91,8 @@ export default function AtividadePage() {
   const fetchCnaes = async () => {
     try {
       const resp = await axios.get("https://projeto-back-ten.vercel.app/cnae");
-      const data: Array<{ id_cnae: number; nome: string; numero: string }> = resp.data;
+      const data: Array<{ id_cnae: number; nome: string; numero: string }> =
+        resp.data;
       const opts: CnaeOption[] = data.map((c) => ({
         value: c.numero,
         label: `${c.numero} — ${c.nome}`,
@@ -129,6 +134,21 @@ export default function AtividadePage() {
     }
   }, [cep, useDifferentAddress]);
 
+  // Cria um CNPJ fictício (simulando retorno da API)
+  const createFakeCnpj = () => {
+    // Gera um CNPJ aleatório
+    const fakeCnpjNumber = Math.floor(Math.random() * 90000000000000 + 10000000000000)
+      .toString()
+      .padStart(14, "0");
+
+    // Simula um objeto retornado pela API
+    return {
+      id_cnpj: Math.floor(Math.random() * 10000),
+      numero: fakeCnpjNumber,
+      criadoEm: new Date().toISOString(),
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -154,28 +174,46 @@ export default function AtividadePage() {
       }
     }
 
-    const formData = new FormData(e.currentTarget);
-    const activityData = {
-      cliente: selectedClient,
-      cnaes: selectedCnaes.map((c) => ({
-        id_cnae: c.id_cnae,
-        numero: c.value,
-        nome: c.label,
-      })),
-      fantasyName: formData.get("fantasyName") as string,
-      description: formData.get("description") as string,
-      enderecoEmpresa: useDifferentAddress
-        ? { cep, street, number, complement, district, city, state: stateUf }
-        : null,
-    };
-
     try {
+      // 🔹 Cria CNPJ fictício
+      const fakeCnpj = createFakeCnpj();
+
+      // 🔹 Associa o CNPJ ao cliente
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `https://projeto-back-ten.vercel.app/adicionarcnpjcliente/${selectedClient.id_cliente}`,
+        { cnpj_id: fakeCnpj.id_cnpj },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // 🔹 Salva os dados localmente
+      const formData = new FormData(e.currentTarget);
+      const activityData = {
+        cliente: selectedClient,
+        cnaes: selectedCnaes.map((c) => ({
+          id_cnae: c.id_cnae,
+          numero: c.value,
+          nome: c.label,
+        })),
+        cnpj: fakeCnpj,
+        fantasyName: formData.get("fantasyName") as string,
+        description: formData.get("description") as string,
+        enderecoEmpresa: useDifferentAddress
+          ? { cep, street, number, complement, district, city, state: stateUf }
+          : null,
+      };
+
       localStorage.setItem("tempUserData", JSON.stringify(activityData));
+
       setIsSuccess(true);
       setTimeout(() => router.push("/admin/generate-links"), 2000);
     } catch (err) {
       console.error(err);
-      setError("Erro ao salvar dados. Tente novamente.");
+      setError("Erro ao criar ou associar o CNPJ fictício.");
     } finally {
       setIsLoading(false);
     }
@@ -197,25 +235,27 @@ export default function AtividadePage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-50 flex items-center justify-center px-4">
-      <Card className="shadow-lg border-0 max-w-md w-full bg-white text-center">
-        <CardHeader>
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="w-12 h-12 text-green-600" />
-          </div>
-          <CardTitle className="text-2xl font-semibold text-gray-800">
-           Empresa criada com sucesso!
-          </CardTitle>
-          <CardDescription>Você será redirecionado em instantes...</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Card className="shadow-lg border-0 max-w-md w-full bg-white text-center">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-semibold text-gray-800">
+              Empresa criada com sucesso!
+            </CardTitle>
+            <CardDescription>
+              Você será redirecionado em instantes...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Button disabled className="mt-4 w-full">
               Redirecionando...
             </Button>
           </CardContent>
-      </Card>
-    </div>  
-    ) 
-  } 
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <AuthGuard requiredRole="admin">
