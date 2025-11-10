@@ -37,15 +37,15 @@ export default function UsersPage() {
     email: "",
     phone: "",
     password: "",
-    role: "client",
+    role: "funcionario", 
   })
 
-  // 🔹 Função para definir cores por status
+  // 🔹 Define cores por status
   const getStatusColor = (status: string) => {
     switch (status) {
       case "administrador":
         return "bg-purple-100 text-purple-600 border border-purple-200"
-      case "Funcionario":
+      case "funcionario":
         return "bg-blue-100 text-blue-600 border border-blue-200"
       default:
         return "bg-gray-100 text-gray-700 border border-gray-300"
@@ -81,14 +81,14 @@ export default function UsersPage() {
     try {
       setError(null)
       setSuccess(null)
-      await documents.post("/cadastro", novoUsuario)
+      await documents.post("/cadastro", novoUsuario) 
       setSuccess("Usuário cadastrado com sucesso!")
       setNovoUsuario({
         name: "",
         email: "",
         phone: "",
         password: "",
-        role: "client",
+        role: "funcionario",
       })
       fetchUsuarios()
     } catch (err) {
@@ -97,7 +97,7 @@ export default function UsersPage() {
     }
   }
 
-  // 🔹 Filtragem de busca
+  // 🔹 Filtra lista de usuários
   const filteredUsers = Array.isArray(usuarios.data)
     ? usuarios.data.filter((user) =>
         [user.nome, user.email]
@@ -189,6 +189,24 @@ export default function UsersPage() {
                   setNovoUsuario({ ...novoUsuario, password: e.target.value })
                 }
               />
+
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo de Usuário
+                </label>
+                <select
+                  value={novoUsuario.role}
+                  onChange={(e) =>
+                    setNovoUsuario({ ...novoUsuario, role: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="funcionario">Funcionário</option>
+                  <option value="administrador">Administrador</option>
+                </select>
+              </div>
+
               <Button
                 onClick={handleCadastro}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -236,11 +254,13 @@ export default function UsersPage() {
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
                             <Badge
-                            className={`px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(
-                              user.nivel_usuario_id === 2 ? "administrador" : "Funcionario"
-                            )}`}
-                          >
-                            {user.nivel_usuario_id === 2 ? "Administrador" : "Funcionário"}
+                              className={`px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                                user.nivel_usuario_id === 2 ? "administrador" : "funcionario"
+                              )}`}
+                            >
+                              {user.nivel_usuario_id === 2
+                                ? "Administrador"
+                                : "Funcionário"}
                             </Badge>
                           </TableCell>
                         </TableRow>

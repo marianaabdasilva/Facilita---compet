@@ -113,11 +113,13 @@ export default function ClientsPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <Link href="/abrir-empresa/clientes" className="w-full sm:w-auto">
-                <Button className="bg-green-600 hover:bg-green-700 w-full text-sm md:text-base">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Criar Conta de Cliente
-                </Button>
-              </Link>
+              <Button
+                className="border border-blue-600 text-blue-600 bg-transparent hover:bg-transparent w-full text-sm md:text-base"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Criar Conta de Cliente
+              </Button>
+            </Link>
               <Link href="/abrir-empresa/atividade" className="w-full sm:w-auto">
                 <Button className="bg-blue-600 hover:bg-blue-700 w-full text-sm md:text-base">
                   <Plus className="w-4 h-4 mr-2" />
