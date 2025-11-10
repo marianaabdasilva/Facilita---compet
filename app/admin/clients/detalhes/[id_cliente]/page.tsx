@@ -4,55 +4,108 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Factory } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Loader2, Factory, FileText } from "lucide-react";
 
-interface Empresa {
-  id_CNPJ: string | number;
-  nome_fantasia?: string;
-  CNPJ?: string | number;
-  cnpj?: string | number;
-  data_criacao?: string;
-  atividade_principal?: string;
-  data_abertura?: string;
-}
-
-interface ClienteDetalhes {
+/* ======================================================
+   COMPONENTE DE LISTAGEM DE DOCUMENTOS 
+   ====================================================== */
+const DocumentosList = ({
+  documentos,
+  id_cliente,
+}: {
+  documentos: any[];
   id_cliente: string | number;
-  cliente: string;
-  email?: string;
-  telefone?: string;
-  data_criacao?: string;
-  empresas?: Empresa[];
-}
+}) => {
+  const [statusLinks, setStatusLinks] = useState<Record<number, boolean | null>>({});
 
+  useEffect(() => {
+    const testarLinks = async () => {
+      const resultados: Record<number, boolean | null> = {};
+      for (let i = 0; i < documentos.length; i++) {
+        let linkCorrigido = documentos[i].link;
+        if (linkCorrigido?.includes(":id")) {
+          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
+        }
+        try {
+          const res = await fetch(linkCorrigido, { method: "HEAD" });
+          resultados[i] = res.ok;
+        } catch {
+          resultados[i] = false;
+        }
+      }
+      setStatusLinks(resultados);
+    };
+    if (documentos.length > 0) testarLinks();
+  }, [documentos, id_cliente]);
+
+  return (
+    <ul className="space-y-3">
+      {documentos.map((doc, index) => {
+        let linkCorrigido = doc.link;
+        if (linkCorrigido?.includes(":id")) {
+          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
+        }
+
+        const nomeArquivo = linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
+        const status = statusLinks[index];
+
+        return (
+          <li
+            key={`doc-${index}`}
+            className="flex items-center justify-between border p-3 rounded-lg hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-gray-600" />
+              <div>
+                <p className="font-medium">{nomeArquivo}</p>
+                <p className="text-sm text-gray-500 break-all">{linkCorrigido}</p>
+              </div>
+            </div>
+
+            {status === null || status === undefined ? (
+              <Loader2 className="animate-spin w-4 h-4 text-gray-400" />
+            ) : status ? (
+              <Button asChild variant="outline" size="sm">
+                <a href={linkCorrigido} target="_blank" rel="noopener noreferrer">
+                  Visualizar
+                </a>
+              </Button>
+            ) : (
+              <span className="text-red-500 text-sm font-medium">Indisponível</span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+/* ======================================================
+   PÁGINA PRINCIPAL — DETALHES DO CLIENTE
+   ====================================================== */
 export default function DetalhesClientePage() {
-  // captura params de forma robusta (cobre várias possíveis chaves)
   const params = useParams() as Record<string, any>;
   const id = params.id_cliente ?? params.id ?? params["id-cliente"];
   const router = useRouter();
 
-  const [cliente, setCliente] = useState<ClienteDetalhes | null>(null);
+  const [cliente, setCliente] = useState<any>(null);
+  const [documentos, setDocumentos] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // logs para depuração — veja no console do navegador (F12 → Console)
-  console.log("Params recebidos (useParams):", params);
-  console.log("ID do cliente recebido (usado):", id);
-
+  /* === Buscar dados do cliente === */
   useEffect(() => {
     const fetchCliente = async () => {
       setLoading(true);
       setError("");
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Usuário não autenticado.");
-        }
+        if (!token) throw new Error("Usuário não autenticado.");
 
-        // usamos o endpoint geral e filtramos localmente (padrão que funcionou para a empresa)
         const res = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
           headers: {
             "Content-Type": "application/json",
@@ -60,94 +113,67 @@ export default function DetalhesClientePage() {
           },
         });
 
-        console.log("Status da resposta:", res.status);
+        if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
+        const data = await res.json();
 
-        if (!res.ok) {
-          const txt = await res.text().catch(() => "");
-          throw new Error(`Erro na requisição: ${res.status} ${txt}`);
-        }
-
-        const data: any = await res.json();
-        console.log("Dados retornados (clientes-detalhes):", data);
-
-        // Se a API retornar um array de registros planos (cada registro tem id_cliente + id_CNPJ)
         if (Array.isArray(data)) {
-          // encontra um registro do cliente para extrair info geral
           const clienteRegistro = data.find((r: any) => String(r.id_cliente) === String(id));
-          if (!clienteRegistro) {
-            throw new Error("Cliente não encontrado (nenhum registro com esse id_cliente).");
-          }
+          if (!clienteRegistro) throw new Error("Cliente não encontrado.");
 
-          // agrupa todas as empresas desse cliente (cada item do array que tiver o mesmo id_cliente)
           const empresasDoCliente = data
             .filter((r: any) => String(r.id_cliente) === String(id))
             .map((item: any) => ({
               id_CNPJ: item.id_CNPJ ?? item.id_empresa ?? item.id ?? null,
-              nome_fantasia: (item.nome_fantasia ?? item.razao_social ?? item.nome) || "-",
-              cnpj: item.CNPJ ?? item.cnpj ?? item.cnpj_numero ?? "-",
-              data_criacao: item.data_criacao ?? item.data_abertura ?? undefined,
-              atividade_principal: item.atividade_principal ?? item.cnae ?? undefined,
-              data_abertura: item.data_abertura ?? undefined,
+              nome_fantasia: item.nome_fantasia ?? item.razao_social ?? item.nome ?? "-",
+              cnpj: item.CNPJ ?? item.cnpj ?? "-",
+              atividade_principal: item.atividade_principal ?? item.cnae ?? "-",
             }));
 
           setCliente({
             id_cliente: clienteRegistro.id_cliente,
             cliente: clienteRegistro.cliente ?? clienteRegistro.nome ?? "-",
             email: clienteRegistro.email ?? "-",
-            telefone: clienteRegistro.telefone ?? undefined,
+            telefone: clienteRegistro.telefone ?? "-",
             data_criacao: clienteRegistro.data_criacao ?? undefined,
             empresas: empresasDoCliente,
           });
-        } else if (typeof data === "object" && data !== null) {
-          // Caso a API retorne um objeto com lista interna (ex: { clientes: [...] })
-          const maybeArray = data.clientes || data.data || data.empresas || Object.values(data).find(Array.isArray);
-          if (Array.isArray(maybeArray)) {
-            const clienteRegistro = maybeArray.find((r: any) => String(r.id_cliente) === String(id));
-            const empresasDoCliente = maybeArray.filter((r: any) => String(r.id_cliente) === String(id))
-              .map((item: any) => ({
-                id_CNPJ: item.id_CNPJ ?? item.id_empresa ?? item.id ?? null,
-                nome_fantasia: (item.nome_fantasia ?? item.razao_social ?? item.nome) || "-",
-                cnpj: item.CNPJ ?? item.cnpj ?? "-",
-                data_criacao: item.data_criacao ?? item.data_abertura ?? undefined,
-                atividade_principal: item.atividade_principal ?? item.cnae ?? undefined,
-                data_abertura: item.data_abertura ?? undefined,
-              }));
-
-            if (!clienteRegistro) throw new Error("Cliente não encontrado.");
-            setCliente({
-              id_cliente: clienteRegistro.id_cliente,
-              cliente: clienteRegistro.cliente ?? clienteRegistro.nome ?? "-",
-              email: clienteRegistro.email ?? "-",
-              telefone: clienteRegistro.telefone ?? undefined,
-              data_criacao: clienteRegistro.data_criacao ?? undefined,
-              empresas: empresasDoCliente,
-            });
-          } else {
-            throw new Error("Formato de resposta inesperado da API.");
-          }
         } else {
-          throw new Error("Formato de resposta inesperado da API.");
+          throw new Error("Formato inesperado de resposta.");
         }
       } catch (err: any) {
-        console.error("Erro ao buscar cliente:", err);
-        setError(err?.message || "Erro desconhecido");
+        setError(err.message || "Erro ao carregar cliente");
       } finally {
         setLoading(false);
       }
     };
+    if (id) fetchCliente();
+  }, [id]);
 
-    // só executa quando tivermos o id
-    if (id) {
-      fetchCliente();
-    } else {
-      // se id ausente, mostra erro claro
-      console.warn("ID do cliente não definido ainda — verificando params:", params);
-      setError("ID do cliente ausente na rota.");
-      setLoading(false);
-    }
-  }, [id, params]);
+  /* === Buscar documentos vinculados ao cliente === */
+  useEffect(() => {
+    const fetchDocs = async () => {
+      if (!id) return;
+      setLoadingDocs(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`https://projeto-back-ten.vercel.app/documentos/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Erro ao buscar documentos: ${res.status}`);
+        const data = await res.json();
+        setDocumentos(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setDocumentos([]);
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+    fetchDocs();
+  }, [id]);
 
-  if (loading) {
+  /* === Renderizações === */
+  if (loading)
     return (
       <AuthGuard requiredRole="admin">
         <AdminLayout>
@@ -158,38 +184,36 @@ export default function DetalhesClientePage() {
         </AdminLayout>
       </AuthGuard>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
       <AuthGuard requiredRole="admin">
         <AdminLayout>
-          <div className="p-6">
-            <p className="text-red-600 text-center mt-6">{error}</p>
-            <div className="text-center mt-6">
-              <Button onClick={() => router.back()}>Voltar</Button>
-            </div>
+          <div className="p-6 text-center">
+            <p className="text-red-600 mt-6">{error}</p>
+            <Button onClick={() => router.back()} className="mt-6">
+              Voltar
+            </Button>
           </div>
         </AdminLayout>
       </AuthGuard>
     );
-  }
 
-  if (!cliente) {
+  if (!cliente)
     return (
       <AuthGuard requiredRole="admin">
         <AdminLayout>
-          <div className="p-6">
-            <p className="text-gray-500 text-center mt-6">Cliente não encontrado.</p>
-            <div className="text-center mt-6">
-              <Button onClick={() => router.back()}>Voltar</Button>
-            </div>
+          <div className="p-6 text-center">
+            <p className="text-gray-500 mt-6">Cliente não encontrado.</p>
+            <Button onClick={() => router.back()} className="mt-6">
+              Voltar
+            </Button>
           </div>
         </AdminLayout>
       </AuthGuard>
     );
-  }
 
+  /* === Render principal === */
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -201,8 +225,7 @@ export default function DetalhesClientePage() {
               <p className="text-gray-600 mt-1">Detalhes do cliente e suas empresas</p>
             </div>
             <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
             </Button>
           </div>
 
@@ -213,10 +236,13 @@ export default function DetalhesClientePage() {
               <CardDescription>Dados gerais cadastrados</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p><strong>Nome do Cliente:</strong> {cliente.cliente ?? "-"}</p>
-              <p><strong>Email:</strong> {cliente.email ?? "-"}</p>
-              <p><strong>Telefone:</strong> {cliente.telefone ?? "-"}</p>
-              <p><strong>Data de criação:</strong> {cliente.data_criacao ? new Date(cliente.data_criacao).toLocaleDateString("pt-BR") : "-"}</p>
+              <p><strong>Nome:</strong> {cliente.cliente}</p>
+              <p><strong>Email:</strong> {cliente.email}</p>
+              <p><strong>Telefone:</strong> {cliente.telefone}</p>
+              <p>
+                <strong>Data de criação:</strong>{" "}
+                {cliente.data_criacao ? new Date(cliente.data_criacao).toLocaleDateString("pt-BR") : "-"}
+              </p>
             </CardContent>
           </Card>
 
@@ -226,9 +252,8 @@ export default function DetalhesClientePage() {
               <CardTitle>Empresas vinculadas</CardTitle>
               <CardDescription>Empresas cadastradas para este cliente</CardDescription>
             </CardHeader>
-
             <CardContent>
-              {cliente.empresas && cliente.empresas.length > 0 ? (
+              {cliente.empresas?.length ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -239,18 +264,21 @@ export default function DetalhesClientePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {cliente.empresas.map((empresa) => (
-                        <TableRow key={String(empresa.id_CNPJ ?? empresa.cnpj ?? empresa.CNPJ ?? Math.random())}>
-                          <TableCell className="font-medium">
+                      {cliente.empresas.map((empresa: any) => (
+                        <TableRow
+                          key={String(empresa.id_CNPJ ?? empresa.cnpj ?? Math.random())}
+                        >
+                          <TableCell>
                             <button
-                              onClick={() => router.push(`/admin/clients/${cliente.id_cliente}/empresas/${empresa.id_CNPJ}`)}
-                                className="font-medium text-gray-900 hover:underline"
+                              onClick={() =>
+                                router.push(`/admin/clients/${cliente.id_cliente}/empresas/${empresa.id_CNPJ}`)
+                              }
+                              className="text-gray-900 hover:underline flex items-center gap-2"
                             >
-                              <Factory className="w-4 h-4 text-gray-600" />
-                              {empresa.nome_fantasia}
+                              <Factory className="w-4 h-4" /> {empresa.nome_fantasia}
                             </button>
                           </TableCell>
-                          <TableCell className="font-mono text-sm">{empresa.cnpj ?? empresa.CNPJ ?? "-"}</TableCell>
+                          <TableCell className="font-mono text-sm">{empresa.cnpj}</TableCell>
                           <TableCell>{empresa.atividade_principal ?? "-"}</TableCell>
                         </TableRow>
                       ))}
@@ -258,7 +286,30 @@ export default function DetalhesClientePage() {
                   </Table>
                 </div>
               ) : (
-                <p className="text-gray-500 italic">Nenhuma empresa vinculada a este cliente.</p>
+                <p className="text-gray-500 italic">
+                  Nenhuma empresa vinculada a este cliente.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Documentos vinculados ao cliente */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>Documentos</CardTitle>
+              <CardDescription>Arquivos disponíveis para este cliente</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingDocs ? (
+                <div className="flex items-center text-gray-500">
+                  <Loader2 className="animate-spin w-5 h-5 mr-2" /> Carregando documentos...
+                </div>
+              ) : documentos.length > 0 ? (
+                <DocumentosList documentos={documentos} id_cliente={id!} />
+              ) : (
+                <p className="text-gray-500 italic">
+                  Nenhum documento encontrado para este cliente.
+                </p>
               )}
             </CardContent>
           </Card>
