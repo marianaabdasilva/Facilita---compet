@@ -19,38 +19,17 @@ const DocumentosList = ({
   documentos: any[];
   id_cliente: string | number;
 }) => {
-  const [statusLinks, setStatusLinks] = useState<Record<number, boolean | null>>({});
-
-  useEffect(() => {
-    const testarLinks = async () => {
-      const resultados: Record<number, boolean | null> = {};
-      for (let i = 0; i < documentos.length; i++) {
-        let linkCorrigido = documentos[i].link;
-        if (linkCorrigido?.includes(":id")) {
-          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
-        }
-        try {
-          const res = await fetch(linkCorrigido, { method: "HEAD" });
-          resultados[i] = res.ok;
-        } catch {
-          resultados[i] = false;
-        }
-      }
-      setStatusLinks(resultados);
-    };
-    if (documentos.length > 0) testarLinks();
-  }, [documentos, id_cliente]);
-
   return (
     <ul className="space-y-3">
       {documentos.map((doc, index) => {
+        // Substitui :id pelo ID real do cliente
         let linkCorrigido = doc.link;
         if (linkCorrigido?.includes(":id")) {
           linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
         }
 
-        const nomeArquivo = linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
-        const status = statusLinks[index];
+        const nomeArquivo =
+          linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
 
         return (
           <li
@@ -61,21 +40,21 @@ const DocumentosList = ({
               <FileText className="w-5 h-5 text-gray-600" />
               <div>
                 <p className="font-medium">{nomeArquivo}</p>
-                <p className="text-sm text-gray-500 break-all">{linkCorrigido}</p>
+                <p className="text-sm text-gray-500 break-all">
+                  {linkCorrigido}
+                </p>
               </div>
             </div>
 
-            {status === null || status === undefined ? (
-              <Loader2 className="animate-spin w-4 h-4 text-gray-400" />
-            ) : status ? (
-              <Button asChild variant="outline" size="sm">
-                <a href={linkCorrigido} target="_blank" rel="noopener noreferrer">
-                  Visualizar
-                </a>
-              </Button>
-            ) : (
-              <span className="text-red-500 text-sm font-medium">Indisponível</span>
-            )}
+            <Button asChild variant="outline" size="sm">
+              <a
+                href={linkCorrigido}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Visualizar
+              </a>
+            </Button>
           </li>
         );
       })}
