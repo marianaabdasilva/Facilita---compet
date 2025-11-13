@@ -24,44 +24,10 @@ const DocumentosList = ({
   documentos: any[];
   id_cliente: string | number;
 }) => {
-  const [statusLinks, setStatusLinks] = useState<Record<number, boolean | null>>(
-    {}
-  );
-
-  useEffect(() => {
-    const testarLinks = async () => {
-      const resultados: Record<number, boolean | null> = {};
-
-      for (let i = 0; i < documentos.length; i++) {
-        let linkCorrigido = documentos[i].link;
-        if (linkCorrigido?.includes(":id")) {
-          linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
-        }
-
-        try {
-          const res = await fetch(linkCorrigido, { method: "HEAD" });
-          console.log(
-            `🔍 Testando link ${i + 1}:`,
-            linkCorrigido,
-            "→ status:",
-            res.status
-          );
-          resultados[i] = res.ok;
-        } catch (err) {
-          console.error(`❌ Erro ao testar link ${i + 1}:`, linkCorrigido, err);
-          resultados[i] = false;
-        }
-      }
-
-      setStatusLinks(resultados);
-    };
-
-    if (documentos.length > 0) testarLinks();
-  }, [documentos, id_cliente]);
-
   return (
     <ul className="space-y-3">
       {documentos.map((doc, index) => {
+        // Substitui :id pelo ID real do cliente
         let linkCorrigido = doc.link;
         if (linkCorrigido?.includes(":id")) {
           linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
@@ -69,7 +35,6 @@ const DocumentosList = ({
 
         const nomeArquivo =
           linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
-        const status = statusLinks[index];
 
         return (
           <li
@@ -86,23 +51,15 @@ const DocumentosList = ({
               </div>
             </div>
 
-            {status === null || status === undefined ? (
-              <Loader2 className="animate-spin w-4 h-4 text-gray-400" />
-            ) : status ? (
-              <Button asChild variant="outline" size="sm">
-                <a
-                  href={linkCorrigido}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visualizar
-                </a>
-              </Button>
-            ) : (
-              <span className="text-red-500 text-sm font-medium">
-                Indisponível
-              </span>
-            )}
+            <Button asChild variant="outline" size="sm">
+              <a
+                href={linkCorrigido}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Visualizar
+              </a>
+            </Button>
           </li>
         );
       })}

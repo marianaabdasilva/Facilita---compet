@@ -285,7 +285,7 @@ export default function DetalhesClientePage() {
                     </TableBody>
                   </Table>
                 </div>
-              ) : (
+              ) : ( 
                 <p className="text-gray-500 italic">
                   Nenhuma empresa vinculada a este cliente.
                 </p>
@@ -310,7 +310,8 @@ export default function DetalhesClientePage() {
                 <p className="text-gray-500 italic">
                   Nenhum documento encontrado para este cliente.
                 </p>
-              )}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           )}
             </CardContent>
           </Card>
         </div>
