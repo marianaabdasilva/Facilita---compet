@@ -296,13 +296,36 @@ export default function AtividadePage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* CLIENTE */}
                   <div className="space-y-2">
-                    <Label htmlFor="cliente">Selecione o Cliente *</Label>
+                    <Label htmlFor="cliente">Selecione o Cliente responsável pela Empresa *</Label>
                     <Select
                       options={allClientes}
                       value={selectedClient}
                       onChange={handleClientChange}
                       placeholder="Selecione um cliente"
                       className="z-50"
+                    />
+                  </div>
+
+                  {/* Nome Fantasia */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fantasyName">Nome da Empresa *</Label>
+                    <Input
+                      id="fantasyName"
+                      name="fantasyName"
+                      type="text"
+                      placeholder="Nome da sua empresa"
+                      required
+                    />
+                  </div>
+
+                  {/* CNPJ */}
+                  <div className="space-y-2">
+                    <Label htmlFor="CNPJ">CNPJ da Empresa </Label>
+                    <Input
+                      id="CNPJ"
+                      name="CNPJ"
+                      type="text"
+                      placeholder="Número do CNPJ"
                     />
                   </div>
 
@@ -319,15 +342,15 @@ export default function AtividadePage() {
                     />
                   </div>
 
-                  {/* Nome Fantasia */}
+                  {/* Descrição */}
                   <div className="space-y-2">
-                    <Label htmlFor="fantasyName">Nome da Empresa *</Label>
-                    <Input
-                      id="fantasyName"
-                      name="fantasyName"
-                      type="text"
-                      placeholder="Nome da sua empresa"
-                      required
+                    <Label htmlFor="description">Descrição da Atividade</Label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      placeholder="Descreva brevemente a atividade"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
                     />
                   </div>
 
@@ -340,7 +363,7 @@ export default function AtividadePage() {
                         onChange={(e) => setUseDifferentAddress(e.target.checked)}
                       />
                       <span>
-                        A empresa não se localiza na residência do titular
+                        A empresa não se localiza na residência do cliente
                       </span>
                     </label>
                   </div>
@@ -433,21 +456,9 @@ export default function AtividadePage() {
                     </div>
                   )}
 
-                  {/* Descrição */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição da Atividade</Label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      placeholder="Descreva brevemente a atividade"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={3}
-                    />
-                  </div>
-
                   {/* Botões */}
                   <div className="flex justify-between pt-6">
-                    <Link href="/abrir-empresa/dados-pessoais">
+                    <Link href="/admin/clients">
                       <Button type="button" variant="outline">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Voltar
