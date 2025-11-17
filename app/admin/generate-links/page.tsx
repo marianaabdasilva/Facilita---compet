@@ -358,7 +358,11 @@ export default function GenerateLinksPage() {
       <AdminLayout>
         <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Geração de Links</h1>
+           <h1 className="flex items-center text-2xl sm:text-3xl font-bold text-gray-900">
+              <LinkIcon className="w-7 h-7 mr-3 text-blue-600" />
+              Geração de Links
+            </h1>
+
             <p className="text-gray-600 text-sm sm:text-base mt-1">
               Crie links personalizados para upload de documentos
             </p>

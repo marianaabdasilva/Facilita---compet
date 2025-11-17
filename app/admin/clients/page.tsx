@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Eye, Plus, UserPlus } from "lucide-react";
+import { Search, Eye, Plus, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 
 interface Client {
@@ -111,9 +111,11 @@ export default function ClientsPage() {
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">
+              <h1 className="flex items-center text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">
+                <Users className="w-8 h-8 mr-4 text-blue-600" />
                 Gestão de Clientes
               </h1>
+
               <p className="text-gray-600 text-sm md:text-base mt-1 text-center md:text-left">
                 Gerencie todos os clientes e seus processos
               </p>

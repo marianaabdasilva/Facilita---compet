@@ -159,8 +159,11 @@ export default function AdminDashboard() {
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Administrativo</h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">
+              <h1 className="flex items-center text-2xl sm:text-3xl font-bold text-gray-900">
+                  <TrendingUp className="w-8 h-8 mr-2 text-blue-600" />
+                  Dashboard Administrativo
+                </h1>
+              <p>
                 Visão geral do sistema e métricas principais
               </p>
             </div>
