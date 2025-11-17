@@ -6,55 +6,48 @@ import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Loader2, Factory, FileText } from "lucide-react";
 
 /* ======================================================
    COMPONENTE DE LISTAGEM DE DOCUMENTOS 
    ====================================================== */
-const DocumentosList = ({
-  documentos,
-  id_cliente,
-}: {
-  documentos: any[];
-  id_cliente: string | number;
-}) => {
+const DocumentosList = ({ documentos, id_cliente }: { documentos: any[]; id_cliente: string | number }) => {
   return (
     <ul className="space-y-3">
       {documentos.map((doc, index) => {
-        // Substitui :id pelo ID real do cliente
         let linkCorrigido = doc.link;
         if (linkCorrigido?.includes(":id")) {
           linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
         }
 
-        const nomeArquivo =
-          linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
+        // usa o nome real do documento enviado pelo backend (ex.: "CNH", "RG", "CPF")
+        const tipoDocumento = doc.nome || doc.tipo || "Documento";
+
+        // key mais robusta (evita colisões)
+        const key = doc.id_documento ?? doc.id ?? `doc-${index}`;
 
         return (
-          <li
-            key={`doc-${index}`}
-            className="flex items-center justify-between border p-3 rounded-lg hover:bg-gray-50"
-          >
+          <li key={String(key)} className="flex items-center justify-between border p-3 rounded-lg hover:bg-gray-50">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="font-medium">{nomeArquivo}</p>
-                <p className="text-sm text-gray-500 break-all">
-                  {linkCorrigido}
-                </p>
+                <p className="font-medium">{tipoDocumento}</p>
+                <p className="text-sm text-gray-500 break-all">{linkCorrigido ?? "Sem link"}</p>
               </div>
             </div>
 
-            <Button asChild variant="outline" size="sm">
-              <a
-                href={linkCorrigido}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Visualizar
-              </a>
-            </Button>
+            <div>
+              {linkCorrigido ? (
+                <Button asChild variant="outline" size="sm">
+                  <a href={linkCorrigido} target="_blank" rel="noopener noreferrer">Visualizar</a>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  Visualizar
+                </Button>
+              )}
+            </div>
           </li>
         );
       })}
@@ -157,8 +150,7 @@ export default function DetalhesClientePage() {
       <AuthGuard requiredRole="admin">
         <AdminLayout>
           <div className="flex items-center justify-center h-96 text-gray-500">
-            <Loader2 className="animate-spin w-6 h-6 mr-2" />
-            Carregando dados do cliente...
+            <Loader2 className="animate-spin w-6 h-6 mr-2" /> Carregando dados do cliente...
           </div>
         </AdminLayout>
       </AuthGuard>
@@ -170,9 +162,7 @@ export default function DetalhesClientePage() {
         <AdminLayout>
           <div className="p-6 text-center">
             <p className="text-red-600 mt-6">{error}</p>
-            <Button onClick={() => router.back()} className="mt-6">
-              Voltar
-            </Button>
+            <Button onClick={() => router.back()} className="mt-6">Voltar</Button>
           </div>
         </AdminLayout>
       </AuthGuard>
@@ -184,9 +174,7 @@ export default function DetalhesClientePage() {
         <AdminLayout>
           <div className="p-6 text-center">
             <p className="text-gray-500 mt-6">Cliente não encontrado.</p>
-            <Button onClick={() => router.back()} className="mt-6">
-              Voltar
-            </Button>
+            <Button onClick={() => router.back()} className="mt-6">Voltar</Button>
           </div>
         </AdminLayout>
       </AuthGuard>
@@ -244,9 +232,7 @@ export default function DetalhesClientePage() {
                     </TableHeader>
                     <TableBody>
                       {cliente.empresas.map((empresa: any) => (
-                        <TableRow
-                          key={String(empresa.id_CNPJ ?? empresa.cnpj ?? Math.random())}
-                        >
+                        <TableRow key={String(empresa.id_CNPJ ?? empresa.cnpj ?? Math.random())}>
                           <TableCell>
                             <button
                               onClick={() =>
@@ -264,10 +250,8 @@ export default function DetalhesClientePage() {
                     </TableBody>
                   </Table>
                 </div>
-              ) : ( 
-                <p className="text-gray-500 italic">
-                  Nenhuma empresa vinculada a este cliente.
-                </p>
+              ) : (
+                <p className="text-gray-500 italic">Nenhuma empresa vinculada a este cliente.</p>
               )}
             </CardContent>
           </Card>
@@ -286,11 +270,8 @@ export default function DetalhesClientePage() {
               ) : documentos.length > 0 ? (
                 <DocumentosList documentos={documentos} id_cliente={id!} />
               ) : (
-                <p className="text-gray-500 italic">
-                  Nenhum documento encontrado para este cliente.
-                </p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           )}
+                <p className="text-gray-500 italic">Nenhum documento encontrado para este cliente.</p>
+              )}
             </CardContent>
           </Card>
         </div>

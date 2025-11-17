@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Factory, Loader2, FileText } from "lucide-react";
 
 /* ======================================================
-   COMPONENTE AUXILIAR PARA RENDERIZAR E TESTAR DOCUMENTOS
+   COMPONENTE AUXILIAR PARA RENDERIZAR DOCUMENTOS
    ====================================================== */
 const DocumentosList = ({
   documentos,
@@ -27,14 +27,14 @@ const DocumentosList = ({
   return (
     <ul className="space-y-3">
       {documentos.map((doc, index) => {
-        // Substitui :id pelo ID real do cliente
         let linkCorrigido = doc.link;
+
         if (linkCorrigido?.includes(":id")) {
           linkCorrigido = linkCorrigido.replace(":id", String(id_cliente));
         }
 
-        const nomeArquivo =
-          linkCorrigido?.split("/").pop() || `Documento ${index + 1}`;
+        // tipo do documento REAL fornecido pelo backend
+        const tipoDocumento = doc.nome || "Documento";
 
         return (
           <li
@@ -44,7 +44,8 @@ const DocumentosList = ({
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="font-medium">{nomeArquivo}</p>
+                <p className="font-medium">{tipoDocumento}</p>
+
                 <p className="text-sm text-gray-500 break-all">
                   {linkCorrigido}
                 </p>
@@ -66,7 +67,6 @@ const DocumentosList = ({
     </ul>
   );
 };
-
 
 /* ======================================================
    PÁGINA PRINCIPAL - DETALHES DA EMPRESA
@@ -146,7 +146,8 @@ export default function EmpresaDetalhesPage() {
         const data = await res.json();
         console.log("📦 Documentos recebidos:", data);
 
-        if (!Array.isArray(data)) throw new Error("Formato inválido de resposta.");
+        if (!Array.isArray(data))
+          throw new Error("Formato inválido de resposta.");
         setDocumentos(data);
       } catch (err: any) {
         console.error(err);
