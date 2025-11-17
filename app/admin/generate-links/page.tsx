@@ -27,6 +27,65 @@ import {
 } from "@/components/ui/table";
 import { LinkIcon, Copy, CheckCircle, Trash2, Search } from "lucide-react";
 
+// Accordion (categorias recolhíveis)
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+
+// ---------------------------
+// Lista categorizada de documentos
+// ---------------------------
+const DOCUMENTOS_CATEGORIZADOS: Record<string, string[]> = {
+  "Documentos Pessoais": [
+    "RG (frente e verso)",
+    "CNH (frente e verso, se usada no lugar do RG)",
+    "CPF (se não constar no RG ou CNH)",
+    "Título de Eleitor",
+    "Recibo da última Declaração de Imposto de Renda (IRPF)",
+    "Documento migratório — RNE, CRNM ou protocolo de refúgio",
+  ],
+  "Comprovação de Endereço": [
+    "Comprovante de residência atualizado",
+    "Comprovante de endereço comercial",
+    "Contrato de locação ou autorização de uso do imóvel comercial",
+  ],
+  "Licenças Municipais": [
+    "Comprovante de viabilidade municipal",
+    "Alvará de Funcionamento",
+    "Alvará Provisório",
+    "Licença Sanitária",
+    "Planta baixa ou croqui do estabelecimento",
+  ],
+  "Licenças Estaduais": [
+    "Licença da Vigilância Sanitária Estadual",
+    "Licença Ambiental",
+    "Laudo Técnico de Segurança",
+  ],
+  "Licenças Federais": [
+    "Licença do Corpo de Bombeiros (AVCB ou CLCB)",
+    "Autorização da Polícia Federal",
+    "Autorização do Exército",
+    "Licença da Anvisa",
+    "Licença da Secretaria de Agricultura",
+    "Licença da Secretaria de Transportes",
+    "Licença da Secretaria de Obras ou Urbanismo",
+    "Licença da Prefeitura (específica conforme atividade)",
+  ],
+  "Pós-Abertura": [
+    "Comprovante de inscrição estadual",
+    "Comprovante de inscrição municipal",
+    "Cartão do CNPJ",
+    "Certificado CCMEI",
+    "Comprovantes de pagamento DAS-MEI",
+    "Certificado de Conclusão de Curso",
+    "Carteira de Conselho Profissional",
+    "Relatório fotográfico do local",
+  ],
+};
+
 // Tipos
 interface ClientesOption {
   value: string;
@@ -53,6 +112,7 @@ interface GeneratedLink {
   createdAt: string;
   expiresAt: string;
   used: boolean;
+  documentos?: string[]; // documentos associados ao processo (se houver)
 }
 
 export default function GenerateLinksPage() {
@@ -66,6 +126,10 @@ export default function GenerateLinksPage() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchLink, setSearchLink] = useState("");
+
+  // --- Novos estados para documentos ---
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [docError, setDocError] = useState<string>("");
 
   // Buscar dados
   const fetchClientes = async () => {
@@ -148,6 +212,8 @@ export default function GenerateLinksPage() {
         createdAt: item.data_atualizacao || new Date().toISOString(),
         expiresAt: item.data_expiracao || "",
         used: item.status_link?.toLowerCase() === "usado",
+        // aceita ambos os formatos que o backend pode retornar
+        documentos: item.documentos || item.documentos_requeridos || [],
       }));
 
       setGeneratedLinks(formattedLinks);
@@ -202,13 +268,24 @@ export default function GenerateLinksPage() {
 
   const handleGenerateLink = async () => {
     if (!selectedClient || !selectedCompany || !selectedProcess) return;
+
+    // validação: precisa selecionar ao menos 1 documento
+    if (selectedDocuments.length === 0) {
+      setDocError("Selecione ao menos 1 documento.");
+      return;
+    }
+
+    setDocError("");
     setIsGenerating(true);
 
     try {
+      // Por padrão uso o campo "documentos_requeridos" no POST.
+      // Se o backend esperar outro nome, substitua "documentos_requeridos" pela chave correta.
       const requestData = {
         id_cliente: selectedClient.id_cliente,
         id_cnpj: selectedCompany.id_cnpj,
         id_tipo_processo: selectedProcess.id_tipo_processo,
+        documentos_requeridos: selectedDocuments, // <-- substitua o nome da chave quando souber
         status: "pendente",
       };
 
@@ -229,10 +306,14 @@ export default function GenerateLinksPage() {
         createdAt: new Date().toISOString(),
         expiresAt: data_expiracao,
         used: false,
+        documentos: selectedDocuments,
       };
 
       setGeneratedLinks((prev) => [...prev, newLink]);
       setGeneratedLink(link);
+
+      // opcional: limpa seleção de documentos após gerar (se quiser manter, remova)
+      setSelectedDocuments([]);
     } catch (error) {
       console.error("Erro ao gerar o link:", error);
     } finally {
@@ -263,6 +344,14 @@ export default function GenerateLinksPage() {
       link.status.toLowerCase().includes(term)
     );
   });
+
+  // helper para alternar doc
+  const toggleDocument = (doc: string) => {
+    setSelectedDocuments((prev) =>
+      prev.includes(doc) ? prev.filter((d) => d !== doc) : [...prev, doc]
+    );
+    if (docError && selectedDocuments.length > 0) setDocError("");
+  };
 
   return (
     <AuthGuard requiredRole="admin">
@@ -318,6 +407,48 @@ export default function GenerateLinksPage() {
                       onChange={(opt) => setSelectedProcess(opt)}
                       placeholder="Selecione o tipo de processo"
                     />
+                  </div>
+
+                  {/* ========== Accordion com categorias de documentos (decorativo) ========== */}
+                  <div className="mt-2">
+                    <Label>Documentos Necessários</Label>
+                    {docError && <p className="text-red-600 text-sm">{docError}</p>}
+
+                    <Accordion type="multiple" className="mt-2">
+                      {Object.entries(DOCUMENTOS_CATEGORIZADOS).map(([categoria, docs]) => (
+                        <AccordionItem key={categoria} value={categoria}>
+                          <AccordionTrigger className="text-sm font-medium">
+                            {categoria}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="grid grid-cols-1 gap-2 py-2">
+                              {docs.map((doc) => (
+                                <label
+                                  key={doc}
+                                  className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4"
+                                    checked={selectedDocuments.includes(doc)}
+                                    onChange={() => toggleDocument(doc)}
+                                    value={doc}
+                                  />
+                                  <span className="text-sm">{doc}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+
+                    <p className="text-xs text-gray-500 mt-2">
+                      Observação: as categorias são apenas decorativas — o que será enviado e
+                      considerado são os documentos marcados. Atualmente os documentos são enviados
+                      no POST como <code>documentos_requeridos</code>. Troque essa chave no código se
+                      o backend esperar um nome diferente.
+                    </p>
                   </div>
 
                   <Button
@@ -384,6 +515,7 @@ export default function GenerateLinksPage() {
                             <TableHead>Empresa</TableHead>
                             <TableHead>Processo</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Docs</TableHead>
                             <TableHead>Criado</TableHead>
                             <TableHead>Expira</TableHead>
                             <TableHead>Ações</TableHead>
@@ -400,11 +532,28 @@ export default function GenerateLinksPage() {
                                   {link.status}
                                 </Badge>
                               </TableCell>
+
+                              <TableCell>
+                                {link.documentos && link.documentos.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {link.documentos.map((d, i) => (
+                                      <Badge key={i} className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                                        {d}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500 text-xs">—</span>
+                                )}
+                              </TableCell>
+
                               <TableCell>
                                 {new Date(link.createdAt).toLocaleDateString("pt-BR")}
                               </TableCell>
                               <TableCell>
-                                {new Date(link.expiresAt).toLocaleDateString("pt-BR")}
+                                {link.expiresAt
+                                  ? new Date(link.expiresAt).toLocaleDateString("pt-BR")
+                                  : ""}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center space-x-2">
@@ -424,7 +573,7 @@ export default function GenerateLinksPage() {
                           ))}
                           {filteredLinks.length === 0 && (
                             <TableRow>
-                              <TableCell colSpan={7} className="text-center text-gray-500 py-6">
+                              <TableCell colSpan={8} className="text-center text-gray-500 py-6">
                                 Nenhum link encontrado.
                               </TableCell>
                             </TableRow>

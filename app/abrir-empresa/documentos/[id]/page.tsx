@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,56 +16,76 @@ import Image from "next/image";
 
 type Uploaded = { file: File; preview: string } | null;
 
-export default function DocumentosPage() {
+export default function DocumentosPageDinamic() {
+  const params = useParams();
   const router = useRouter();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingDocs, setLoadingDocs] = useState(true);
+
+  const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, Uploaded>>(
     {}
   );
 
-  // Documentos obrigatórios
-  const requiredDocuments = [
-    "Cópia do RG ou CIN",
-    "Comprovante de Residência",
-    "Foto 3x4 recente",
-  ];
+  // 🚨 1) Buscar documentos do backend usando o ID do link
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        // ❗❗❗ TROCAR QUANDO SOUBER A ROTA FINAL
+        const res = await fetch(
+          `https://projeto-back-ten.vercel.app/processos/${id}`
+        );
 
-  // Atualiza o arquivo selecionado (limpa URL antiga se existir)
+        if (!res.ok) throw new Error("Erro ao carregar documentos");
+
+        const data = await res.json();
+
+        // API deve retornar: { documentos_requeridos: ["RG", "CPF", ...] }
+        setRequiredDocuments(data.documentos_requeridos);
+      } catch (err) {
+        console.error(err);
+        setError("Erro ao carregar os documentos necessários.");
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+
+    fetchDocs();
+  }, [id]);
+
+  // 🚨 2) Upload
   const handleFileChange = (document: string, file: File | null) => {
     setError("");
+
     if (!file) return;
 
-    // revogar preview anterior (se houver) para liberar memória
     const prev = uploadedFiles[document];
-    if (prev?.preview) {
-      try {
-        URL.revokeObjectURL(prev.preview);
-      } catch (e) {
-        // ignora se já revogado
-      }
-    }
+    if (prev?.preview) URL.revokeObjectURL(prev.preview);
 
     const previewURL = URL.createObjectURL(file);
 
-    setUploadedFiles((prevState) => ({
-      ...prevState,
+    setUploadedFiles((prev) => ({
+      ...prev,
       [document]: { file, preview: previewURL },
     }));
   };
 
-  // Remove arquivo (opcional)
+  // 🚨 3) Remover arquivo
   const handleRemove = (document: string) => {
     const prev = uploadedFiles[document];
     if (prev?.preview) URL.revokeObjectURL(prev.preview);
-    setUploadedFiles((p) => {
-      const copy = { ...p };
+
+    setUploadedFiles((prev) => {
+      const copy = { ...prev };
       delete copy[document];
       return copy;
     });
   };
 
-  // Envia os documentos
+  // 🚨 4) Envio
   const handleSubmit = async () => {
     setError("");
     setIsLoading(true);
@@ -72,14 +93,16 @@ export default function DocumentosPage() {
     const allUploaded = requiredDocuments.every(
       (doc) => Boolean(uploadedFiles[doc]?.file)
     );
+
     if (!allUploaded) {
-      setError("Por favor, faça upload de todos os documentos obrigatórios.");
+      setError("Por favor, envie todos os documentos obrigatórios.");
       setIsLoading(false);
       return;
     }
 
     try {
       const formData = new FormData();
+
       requiredDocuments.forEach((doc) => {
         const item = uploadedFiles[doc];
         if (item?.file) {
@@ -87,17 +110,25 @@ export default function DocumentosPage() {
         }
       });
 
-      // exemplo: enviar ao backend
       // await fetch("/api/upload", { method: "POST", body: formData });
 
       router.push("/abrir-empresa/concluido");
     } catch (err) {
       console.error(err);
-      setError("Erro ao enviar os documentos. Tente novamente.");
+      setError("Erro ao enviar documentos.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // ⏳ Tela carregando
+  if (loadingDocs) {
+    return (
+      <div className="h-screen flex items-center justify-center text-xl">
+        Carregando documentos necessários...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -119,10 +150,10 @@ export default function DocumentosPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Envio de Documentos</CardTitle>
               <CardDescription>
-                Faça o upload dos documentos necessários para iniciar seu
-                processo.
+                Envie os documentos solicitados para continuar seu processo.
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               {error && (
                 <Alert className="mb-6" variant="destructive">
@@ -132,9 +163,9 @@ export default function DocumentosPage() {
               )}
 
               <div className="space-y-4">
-                {requiredDocuments.map((document, index) => (
+                {requiredDocuments.map((document) => (
                   <div
-                    key={index}
+                    key={document}
                     className="border border-gray-200 rounded-lg p-4 mb-4"
                   >
                     <div className="flex items-center justify-between">
@@ -147,7 +178,7 @@ export default function DocumentosPage() {
                         <input
                           type="file"
                           accept="image/*,application/pdf"
-                          id={`file-${index}`}
+                          id={`file-${document}`}
                           style={{ display: "none" }}
                           onChange={(e) =>
                             handleFileChange(
@@ -156,18 +187,20 @@ export default function DocumentosPage() {
                             )
                           }
                         />
-                        <label htmlFor={`file-${index}`}>
+                        <label htmlFor={`file-${document}`}>
                           <Button asChild variant="outline" size="sm">
                             <span>
                               <Upload className="w-4 h-4 mr-2" />
-                              {uploadedFiles[document] ? "Trocar arquivo" : "Upload"}
+                              {uploadedFiles[document]
+                                ? "Trocar arquivo"
+                                : "Upload"}
                             </span>
                           </Button>
                         </label>
                       </div>
                     </div>
 
-                    {/* PRÉ-VISUALIZAÇÃO ABAIXO */}
+                    {/* Pré-visualização */}
                     {uploadedFiles[document] && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-2">
@@ -175,6 +208,7 @@ export default function DocumentosPage() {
                             <CheckCircle className="w-5 h-5 mr-1" />
                             Arquivo carregado
                           </span>
+
                           <button
                             type="button"
                             onClick={() => handleRemove(document)}
@@ -185,9 +219,13 @@ export default function DocumentosPage() {
                         </div>
 
                         <div className="border rounded-lg p-3 bg-white">
-                          <p className="text-sm font-medium mb-2">Pré-visualização:</p>
+                          <p className="text-sm font-medium mb-2">
+                            Pré-visualização:
+                          </p>
 
-                          {uploadedFiles[document]!.file.type.startsWith("image/") && (
+                          {uploadedFiles[document]!.file.type.startsWith(
+                            "image/"
+                          ) && (
                             <img
                               src={uploadedFiles[document]!.preview}
                               alt="preview"
@@ -195,7 +233,8 @@ export default function DocumentosPage() {
                             />
                           )}
 
-                          {uploadedFiles[document]!.file.type === "application/pdf" && (
+                          {uploadedFiles[document]!.file.type ===
+                            "application/pdf" && (
                             <iframe
                               src={uploadedFiles[document]!.preview}
                               className="w-full h-60 border rounded-md"
@@ -203,11 +242,15 @@ export default function DocumentosPage() {
                             />
                           )}
 
-                          {/* fallback: mostrar nome do arquivo */}
-                          {!uploadedFiles[document]!.file.type.startsWith("image/") &&
-                            uploadedFiles[document]!.file.type !== "application/pdf" && (
-                              <p className="text-sm">{uploadedFiles[document]!.file.name}</p>
-                          )}
+                          {!uploadedFiles[document]!.file.type.startsWith(
+                            "image/"
+                          ) &&
+                            uploadedFiles[document]!.file.type !==
+                              "application/pdf" && (
+                              <p className="text-sm">
+                                {uploadedFiles[document]!.file.name}
+                              </p>
+                            )}
                         </div>
                       </div>
                     )}
@@ -221,7 +264,9 @@ export default function DocumentosPage() {
                   className="bg-green-600 hover:bg-green-700"
                   disabled={
                     isLoading ||
-                    !requiredDocuments.every((d) => Boolean(uploadedFiles[d]?.file))
+                    !requiredDocuments.every(
+                      (d) => Boolean(uploadedFiles[d]?.file)
+                    )
                   }
                 >
                   {isLoading ? "Enviando..." : "Finalizar Envio"}
