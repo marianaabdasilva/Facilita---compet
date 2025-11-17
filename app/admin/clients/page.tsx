@@ -60,22 +60,29 @@ export default function ClientsPage() {
           return;
         }
 
-        const response = await fetch("https://projeto-back-ten.vercel.app/clientes-detalhes", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // 🔹 Puxa apenas os clientes que já foram finalizados (etapa 1 + 2)
+        const response = await fetch(
+          "https://projeto-back-ten.vercel.app/clientes-detalhes",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
 
         if (!response.ok) {
-          throw new Error("Erro ao buscar clientes");
+          console.error("Erro na resposta:", data);
+          throw new Error(data.message || "Erro ao buscar clientes");
         }
 
-        const data: Client[] = await response.json();
         setClients(data);
-        setLoading(false);
       } catch (err: any) {
-        setError(err.message);
+        console.error("Erro ao carregar clientes:", err);
+        setError(err.message || "Erro inesperado ao carregar clientes.");
+      } finally {
         setLoading(false);
       }
     };
@@ -113,13 +120,11 @@ export default function ClientsPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <Link href="/abrir-empresa/clientes" className="w-full sm:w-auto">
-              <Button
-                className="border border-blue-600 text-blue-600 bg-transparent hover:bg-transparent w-full text-sm md:text-base"
-              >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Criar Conta de Cliente
-              </Button>
-            </Link>
+                <Button className="bg-green-600 hover:bg-green-700 w-full text-sm md:text-base">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Criar Conta de Cliente
+                </Button>
+              </Link>
               <Link href="/abrir-empresa/atividade" className="w-full sm:w-auto">
                 <Button className="bg-blue-600 hover:bg-blue-700 w-full text-sm md:text-base">
                   <Plus className="w-4 h-4 mr-2" />
