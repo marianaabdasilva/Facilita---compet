@@ -23,8 +23,12 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { AuthGuard } from "@/components/auth-guard";
+import { AdminLayout } from "@/components/admin-layout";
 
-// Função para validar CPF
+// ------------------ Funções utilitárias ------------------
+
+// Validar CPF
 function isValidCPF(cpf: string) {
   cpf = cpf.replace(/[^\d]+/g, "");
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -50,6 +54,8 @@ function formatCPF(value: string) {
     .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4")
     .slice(0, 14);
 }
+
+// ------------------ Página principal ------------------
 
 export default function DadosPessoaisPage() {
   const router = useRouter();
@@ -93,6 +99,11 @@ export default function DadosPessoaisPage() {
     }
   }, [cep]);
 
+  const today = new Date();
+  const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+  const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const getDateString = (date: Date) => date.toISOString().split("T")[0];
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -126,18 +137,19 @@ export default function DadosPessoaisPage() {
       cpf: cpfValue,
       rg: formData.get("rg") as string,
       birthDate: birthDateValue,
-      street: street,
-      number: number,
-      complement: complement, // opcional
-      city: city,
-      state: state,
+      street,
+      number,
+      complement,
+      city,
+      state,
       zipCode: cep,
     };
 
     try {
       const combinedData = { ...userData, ...personalData };
       localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      router.push("/abrir-empresa/atividade");
+      // 🔁 Redireciona para a página de clientes no admin
+      router.push("/admin/clients");
     } catch {
       setError("Erro ao salvar dados. Tente novamente.");
     } finally {
@@ -145,229 +157,189 @@ export default function DadosPessoaisPage() {
     }
   };
 
-  const getDateString = (date: Date) => date.toISOString().split("T")[0];
-  const today = new Date();
-  const minDate = new Date(
-    today.getFullYear() - 100,
-    today.getMonth(),
-    today.getDate()
-  );
-  const maxDate = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
-  );
-
   if (!userData) {
     return <div>Carregando...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <header className="bg-blue-600 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-              <img
-                src="/Facilitaj.png"
-                alt="Logo da Empresa"
-                width={30}
-                height={30}
-                className="w-16 h-16 text-blue-600"
-              />
-            </div>
-          </Link>
-        </div>
-      </header>
+    <AuthGuard requiredRole="admin">
+      <AdminLayout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            <Card className="shadow-xl border-0">
+              <CardHeader>
+                <CardTitle className="text-2xl">Dados Pessoais</CardTitle>
+                <CardDescription>
+                  Dados pessoais para o cadastro da empresa
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {error && (
+                  <Alert className="mb-6" variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <div className="flex items-center text-sm text-gray-600 mb-4">
-              <span className="text-blue-600 font-medium">Etapa 2 de 4</span>
-              <span className="mx-2">•</span>
-              <span>Dados Pessoais</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{ width: "50%" }}
-              />
-            </div>
-          </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cpf">CPF *</Label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="cpf"
+                          name="cpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          required
+                          value={cpf}
+                          onChange={(e) => setCpf(formatCPF(e.target.value))}
+                          maxLength={14}
+                          inputMode="numeric"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
 
-          <Card className="shadow-xl border-0">
-            <CardHeader>
-              <CardTitle className="text-2xl">Dados Pessoais</CardTitle>
-              <CardDescription>
-                Dados pessoais para o cadastro da empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <Alert className="mb-6" variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+                    <div className="space-y-2">
+                      <Label htmlFor="rg">RG</Label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="rg"
+                          name="rg"
+                          type="text"
+                          placeholder="00.000.000-0"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cpf">CPF *</Label>
+                    <Label htmlFor="birthDate">Data de Nascimento *</Label>
                     <div className="relative">
-                      <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-                        id="cpf"
-                        name="cpf"
-                        type="text"
-                        placeholder="000.000.000-00"
+                        id="birthDate"
+                        name="birthDate"
+                        type="date"
                         required
-                        value={cpf}
-                        onChange={(e) => setCpf(formatCPF(e.target.value))}
-                        maxLength={14}
+                        min={getDateString(minDate)}
+                        max={getDateString(maxDate)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CEP */}
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">CEP *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="zipCode"
+                        name="zipCode"
+                        type="text"
+                        placeholder="00000-000"
+                        required
+                        value={cep}
+                        onChange={(e) =>
+                          setCep(e.target.value.replace(/\D/g, "").slice(0, 8))
+                        }
                         inputMode="numeric"
                         className="pl-10"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="rg">RG</Label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  {/* Cidade e Estado */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Cidade *</Label>
                       <Input
-                        id="rg"
-                        name="rg"
+                        id="city"
+                        name="city"
                         type="text"
-                        placeholder="00.000.000-0"
-                        className="pl-10"
+                        required
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">Estado *</Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        type="text"
+                        required
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Data de Nascimento *</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="birthDate"
-                      name="birthDate"
-                      type="date"
-                      required
-                      min={getDateString(minDate)}
-                      max={getDateString(maxDate)}
-                      className="pl-10"
-                    />
+                  {/* Rua, Número, Complemento */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="street">Rua *</Label>
+                      <Input
+                        id="street"
+                        name="street"
+                        type="text"
+                        required
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="number">Número *</Label>
+                      <Input
+                        id="number"
+                        name="number"
+                        type="text"
+                        required
+                        value={number}
+                        onChange={(e) => setNumber(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="complement">Complemento</Label>
+                      <Input
+                        id="complement"
+                        name="complement"
+                        type="text"
+                        placeholder="Opcional"
+                        value={complement}
+                        onChange={(e) => setComplement(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* CEP */}
-                <div className="space-y-2">
-                  <Label htmlFor="zipCode">CEP *</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="zipCode"
-                      name="zipCode"
-                      type="text"
-                      placeholder="00000-000"
-                      required
-                      value={cep}
-                      onChange={(e) =>
-                        setCep(e.target.value.replace(/\D/g, "").slice(0, 8))
-                      }
-                      inputMode="numeric"
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                 {/* Cidade e Estado */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Cidade *</Label>
-                    <Input
-                      id="city"
-                      name="city"
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">Estado *</Label>
-                    <Input
-                      id="state"
-                      name="state"
-                      type="text"
-                      required
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Rua, Número, Complemento */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="street">Rua *</Label>
-                    <Input
-                      id="street"
-                      name="street"
-                      type="text"
-                      required
-                      value={street}
-                      onChange={(e) => setStreet(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="number">Número *</Label>
-                    <Input
-                      id="number"
-                      name="number"
-                      type="text"
-                      required
-                      value={number}
-                      onChange={(e) => setNumber(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="complement">Complemento</Label>
-                    <Input
-                      id="complement"
-                      name="complement"
-                      type="text"
-                      placeholder="Opcional"
-                      value={complement}
-                      onChange={(e) => setComplement(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between pt-6">
-                  <Link href="/abrir-empresa/conta">
-                    <Button type="button" variant="outline">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Voltar
+                  {/* Botões */}
+                  <div className="flex justify-between pt-6">
+                    <Link href="/abrir-empresa/clientes">
+                      <Button type="button" variant="outline">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Voltar
+                      </Button>
+                    </Link>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Salvando..." : "Próxima Etapa"}
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
-                  </Link>
-                  <Button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Salvando..." : "Próxima Etapa"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
-    </div>
+      </AdminLayout>
+    </AuthGuard>
   );
 }
-

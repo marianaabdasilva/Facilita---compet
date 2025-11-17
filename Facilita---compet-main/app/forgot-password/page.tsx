@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
           <Link href="/" className="inline-flex items-center space-x-3">
             <div className="w-48 h-48 bg-transparent rounded-full flex items-center justify-center">
               <img
-                src="/Facilitaj.png"
+                src="/Facilitajs.svg"
                 alt="Logo da Empresa"
                 width={48}
                 height={48}

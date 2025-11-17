@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,21 +35,11 @@ export default function LoginPage() {
 
     try {
       const response = await login(email, password);
-      console.log("Resposta do backend:", response);
 
       await login(email, password);
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      
-      if (user.role === "admin") {
-        router.push("/admin/dashboard");
-      } else if (user.role === "employee") {
-        router.push("/employee/dashboard")
-      } else {
-        router.push("/dashboard");
-      }
 
-
-
+      router.push("/admin/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login");
     }
@@ -61,7 +53,7 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center space-x-3">
             <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
               <img
-                src="/Facilitaj.png"
+                src="/Facilitajs.svg"
                 alt="Logo da Empresa"
                 width={30}
                 height={30}
@@ -102,37 +94,49 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+              <div className="space-y-2 relative">
+                <Label htmlFor="password">Senha *</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-blue-600 hover:underline"
+                >
                   Esqueceu a senha?
                 </Link>
               </div>
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
+              >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
 
               <div className="text-xs text-gray-500 text-center mt-4">
-                <p>Demo: joao@empresa.com (cliente) | carlos@facilita.com (funcionário) | admin@facilita.com (admin)</p>
-                <p className="mt-2">
-                  Não tem conta?{" "}
-                  <Link href="/cadastro" className="text-blue-600 hover:underline">
-                    Criar Conta
-                  </Link>
-                </p>
+                <p>Demo: Admintest@gmail.com e senha:123456</p>
               </div>
             </form>
           </CardContent>
@@ -145,5 +149,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

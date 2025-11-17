@@ -16,15 +16,14 @@ export default function ContatoPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-30 h-30 bg-transparent rounded-full flex items-center justify-center">
-                                        <Image
-                                          src="/Facilitaj.png"
-                                          alt="Logo"
-                                          width={120}
-                                          height={120}
-                                          className="object-contain"
-                                        />
-                                      </div>
-      
+                <Image
+                  src="/Facilitajs.svg"
+                  alt="Logo"
+                  width={120}
+                  height={120}
+                  className="object-contain"
+                />
+              </div>
             </Link>
             <Link href="/login">
               <Button variant="ghost" className="text-white bg-blue-600 hover:bg-transparent hover:text-blue-600">
@@ -46,7 +45,7 @@ export default function ContatoPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-10">
               {/* Contact Form */}
               <Card className="shadow-lg">
                 <CardHeader>
@@ -78,8 +77,21 @@ export default function ContatoPage() {
                 </CardContent>
               </Card>
 
-              {/* Contact Information */}
+              {/* Informações de Contato */}
               <div className="space-y-6">
+                {/* Horário de Atendimento */}
+                <Card className="shadow-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                  <CardHeader>
+                    <CardTitle className="text-white">Horário de Atendimento</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-blue-100">Segunda a Sexta: 9h às 18h</p>
+                    <p className="text-blue-100">Sábado: 9h às 13h</p>
+                    <p className="text-blue-100 mt-2">Respondemos em até 24 horas úteis</p>
+                  </CardContent>
+                </Card>
+
+                {/* WhatsApp */}
                 <Card className="shadow-lg border-2 border-green-500 bg-gradient-to-br from-green-50 to-white">
                   <CardHeader>
                     <CardTitle className="flex items-center text-green-700">
@@ -96,20 +108,28 @@ export default function ContatoPage() {
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">WhatsApp</h4>
-                          <p className="text-green-700 font-medium">(11) 99999-9999</p>
+                          <p className="text-green-700 font-medium">(81) 99999-9999</p>
                         </div>
                       </div>
                     </div>
-                    <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="block">
+                    <a
+                      href="https://wa.me/5511999999999"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
                       <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Iniciar Conversa no WhatsApp
                       </Button>
                     </a>
-                    <p className="text-sm text-gray-600 text-center">Atendimento rápido e direto pelo WhatsApp</p>
+                    <p className="text-sm text-gray-600 text-center">
+                      Atendimento rápido e direto pelo WhatsApp
+                    </p>
                   </CardContent>
                 </Card>
 
+                {/* Outras formas de contato */}
                 <Card className="shadow-lg">
                   <CardHeader>
                     <CardTitle>Outras Formas de Contato</CardTitle>
@@ -132,7 +152,7 @@ export default function ContatoPage() {
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">Telefone</h4>
-                        <p className="text-gray-600">(11) 3000-0000</p>
+                        <p className="text-gray-600">(81) 3000-0000</p>
                       </div>
                     </div>
 
@@ -142,20 +162,9 @@ export default function ContatoPage() {
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">Endereço</h4>
-                        <p className="text-gray-600">São Paulo, SP - Brasil</p>
+                        <p className="text-gray-600">Surubim, PE - Brasil</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                  <CardHeader>
-                    <CardTitle className="text-white">Horário de Atendimento</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-blue-100">Segunda a Sexta: 9h às 18h</p>
-                    <p className="text-blue-100">Sábado: 9h às 13h</p>
-                    <p className="text-blue-100 mt-2">Respondemos em até 24 horas úteis</p>
                   </CardContent>
                 </Card>
               </div>

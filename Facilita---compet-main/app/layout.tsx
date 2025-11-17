@@ -8,7 +8,7 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "FACILITA - Sistema de Gestão Empresarial",
+  title: "FACILITA JÁ - Sistema de Gestão Empresarial",
   description: "Plataforma para abertura, alteração e fechamento de CNPJ",
   generator: "v0.app",
 }

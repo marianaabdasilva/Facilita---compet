@@ -2,12 +2,12 @@ import axios from "axios"
 
 export interface User {
   id: string
-  name: string
+  nome: string
   email: string
-  role: "client" | "employee" | "Administrador"
+  role: "client" | "Administrador"
   company?: {
     id: string
-    name: string
+    nome: string
     cnpj: string
   }
   department?: string
@@ -26,11 +26,9 @@ export const authService = {
         Email: email,
         Senha: password,
       });
-
-      console.log("Resposta completa do backend:", res);
-
+      
       const { token, user } = res.data
-
+      
       localStorage.setItem("token", token)
       localStorage.setItem("user", JSON.stringify(user))
 
@@ -45,7 +43,7 @@ export const authService = {
     email: string
     phone: string
     password: string
-    role: "client" | "employee"
+    role: "client"
   }): Promise<User> {
 
     try {

@@ -1,248 +1,189 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Building2, FileText, Users, Zap, Shield, Clock } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+"use client"
 
-export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-blue-100 shadow-lg">
-        <div className="container mx-auto px-4 py-1">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-                        <div className="w-32 h-32 bg-transparent rounded-full flex items-center justify-center">
-                          <Image
-                            src="/Facilitaj.png"
-                            alt="Logo"
-                            width={128}
-                            height={128}
-                            className="object-contain"
-                          />
-                        </div>
-            </div>
+import axios from "axios"
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import { DocumentUpload } from "@/components/document-upload"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { uploadArquivoCliente } from "@/lib/upload"
 
-            {/* User Actions */}
-            <div className="flex items-center space-x-3">
-              <Link href="/login">
-                <Button variant="ghost" className="text-blue-600 hover:bg-transparent hover:text-white">
-                  Entrar
-                </Button>
-              </Link>
+export default function UploadLinkPage() {
+  const params = useParams()
+  const linkId = params.linkId as string
 
-            </div>
-          </div>
-        </div>
-      </header>
+  const [linkData, setLinkData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([])
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-      {/* Hero Section */}
-<section className="min-h-screen flex items-center bg-blue-100">
-  <div className="container mx-auto px-8 grid grid-cols-1 md:grid-cols-2 gap-12 -mt-16 items-center">
-    
-    {/* Texto lado esquerdo */}
-    <div className="text-left">
-      <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-100">
-        Gestão Empresarial Simplificada
-      </Badge>
+  // 🔹 Busca informações do link real na API
+  useEffect(() => {
+    const fetchLinkData = async () => {
+      try {
+        const res = await axios.get(`/links/${linkId}`) // ajuste conforme seu endpoint real
+        setLinkData(res.data)
+      } catch (err) {
+        console.error("Erro ao buscar link:", err)
+        setError("Link inválido ou expirado.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-      <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-        Facilite seus processos de
-        <span className="text-blue-600"> CNPJ</span>
-      </h2>
+    fetchLinkData()
+  }, [linkId])
 
-      <p className="text-2xl text-gray-600 mb-10 max-w-2xl">
-        Plataforma completa para abertura, alteração e fechamento de CNPJ. Upload de documentos, acompanhamento em
-        tempo real e gestão centralizada.
-      </p>
+  // 🔹 Envia os arquivos para a API
+  const handleSubmit = async () => {
+    if (uploadedFiles.length === 0 || !linkData?.cliente_id) return
 
-      <div className="flex flex-col sm:flex-row gap-6">
-        {/* Botão principal */}
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-100 bg-blue-600 hover:text-blue-600 hover:bg-blue-100">
-        <Link href="/contato">Entre em Contato</Link>
-        </Button>
+    try {
+      for (const fileData of uploadedFiles) {
+        await uploadArquivoCliente(
+          linkData.cliente_id,        // ID do cliente vindo da API
+          fileData.arquivo,           // Arquivo tipo File
+          fileData.tipo_documento_id, // tipo do documento
+          fileData.cnpj_id            // ID do CNPJ
+        )
+      }
 
-        {/* Botão secundário transparente */}
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-8 py-4 text-lg border-2 border-blue-600 text-blue-600 bg-transparent hover:text-white hover:bg-blue-100 hover:border-blue-100"
-        > <Link href="/sobre">
-          Saiba Mais </Link>
-        </Button>
+      setIsSubmitted(true)
+    } catch (err) {
+      console.error("Erro ao enviar:", err)
+      alert("Erro ao enviar arquivos. Tente novamente.")
+    }
+  }
+
+  // 🔸 Carregando link
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-gray-600">Validando link...</p>
       </div>
-    </div>
+    )
+  }
 
-    {/* Imagem lado direito */}
-    <div className="flex justify-center md:justify-end">
-      <img
-        src="/elementos.png"
-        alt="Ilustração empresarial"
-        className="max-150 w-150"
-      />
-    </div>
+  // 🔸 Link inválido
+  if (error || !linkData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Card className="p-6 text-center shadow-md">
+          <AlertCircle className="w-10 h-10 text-red-600 mx-auto mb-4" />
+          <h1 className="text-xl font-semibold mb-2">Link Inválido</h1>
+          <p className="text-gray-600">{error || "Não foi possível validar este link."}</p>
+        </Card>
+      </div>
+    )
+  }
 
-  </div>
-</section>
-
-   {/* Features Grid */}
-<section className="min-h-screen flex flex-col justify-center bg-white py-16">
-  <div className="container mx-auto px-8">
-    <div className="text-center mb-12">
-      <h3 className="text-3xl font-bold text-gray-900 mb-4">Tudo que você precisa em um só lugar</h3>
-      <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-        Simplifique a gestão dos seus processos empresariais com nossa plataforma integrada
-      </p>
-    </div>
-
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8 text-blue-600" />
-          </div>
-          <CardTitle className="text-xl">Upload de Documentos</CardTitle>
-          <CardDescription className="text-base">
-            Envie todos os documentos necessários de forma segura e organizada
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-            <Zap className="w-8 h-8 text-green-600" />
-          </div>
-          <CardTitle className="text-xl">Processos Ágeis</CardTitle>
-          <CardDescription className="text-base">
-            Abertura, alteração e fechamento de CNPJ com máxima eficiência
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-purple-600" />
-          </div>
-          <CardTitle className="text-xl">Gestão de Clientes</CardTitle>
-          <CardDescription className="text-base">
-            Dashboard completo para acompanhar todos os seus clientes e processos
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-orange-600" />
-          </div>
-          <CardTitle className="text-xl">Segurança Total</CardTitle>
-          <CardDescription className="text-base">
-            Seus dados e documentos protegidos com criptografia de ponta
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-            <Clock className="w-8 h-8 text-red-600" />
-          </div>
-          <CardTitle className="text-xl">Acompanhamento</CardTitle>
-          <CardDescription className="text-base">
-            Monitore o status dos processos em tempo real
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow p-6">
-        <CardHeader className="items-center">
-          <div className="w-14 h-14 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
-            <Building2 className="w-8 h-8 text-teal-600" />
-          </div>
-          <CardTitle className="text-xl">Multi-empresa</CardTitle>
-          <CardDescription className="text-base">
-            Gerencie múltiplas empresas em uma única plataforma
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    </div>
-  </div>
-</section>
-
-
-       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-4xl font-bold text-white mb-6">Pronto para simplificar seus processos?</h3>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Junte-se a centenas de empresas que já confiam no FACILITA
+  // 🔸 Upload concluído
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <Card className="max-w-lg w-full text-center border-0 shadow-lg p-8">
+          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Documentos Enviados!</h1>
+          <p className="text-gray-600 mb-6">
+            Seus documentos foram enviados com sucesso. Nossa equipe irá analisá-los em breve.
           </p>
-          <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-            <Link href="/contato">Entre em Contato</Link>
-          </Button>
-        </div>
-      </section>
+        </Card>
+      </div>
+    )
+  }
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-20 h-20 bg-white rounded-full relative flex items-center justify-center">
-                  <Image
-                    src="/Facilitaj.png"
-                    alt="Logo da Empresa"
-                    fill
-                    className="object-contain"
-                  />
+  const isExpired = new Date(linkData.expiresAt) < new Date()
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <img src="/Facilitaj.png" alt="Logo" className="w-16 h-16 mx-auto" />
+          <p className="text-gray-600">Upload de Documentos</p>
+        </div>
+
+        {/* Informações do processo */}
+        <Card className="border-0 shadow-lg mb-8">
+          <CardHeader>
+            <CardTitle>Informações do Processo</CardTitle>
+            <CardDescription>Detalhes do processo para upload de documentos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Cliente</p>
+                <p className="font-medium text-gray-900">{linkData.cliente_nome}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Empresa</p>
+                <p className="font-medium text-gray-900">{linkData.empresa_nome}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Tipo de Processo</p>
+                <p className="font-medium text-gray-900">{linkData.tipo_processo}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Status do Link</p>
+                <div className="flex items-center space-x-2">
+                  {isExpired ? (
+                    <Badge className="bg-red-100 text-red-700">
+                      <Clock className="w-3 h-3 mr-1" /> Expirado
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Ativo
+                    </Badge>
+                  )}
                 </div>
               </div>
-              <p className="text-gray-400">Simplificando a gestão empresarial no Brasil</p>
             </div>
-            <div>
-              <h5 className="font-semibold mb-4">Serviços</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li>Abertura de CNPJ</li>
-                <li>Alteração de CNPJ</li>
-                <li>Fechamento de CNPJ</li>
-                <li>Consultoria</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Suporte</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li>Central de Ajuda</li>
-                <li>
-      <Link href="/contato" className="hover:text-white">
-        Contato
-      </Link>
-    </li>
-    <li>FAQ</li>
-    <li>Documentação</li>
-  </ul>
-</div>
-            <div>
-              <h5 className="font-semibold mb-4">Empresa</h5>
-              <ul className="space-y-2 text-gray-400">
-                <li>Sobre Nós</li>
-                <li>Termos de Uso</li>
-                <li>Privacidade</li>
-                <li>Blog</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Facilita JÁ. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
+          </CardContent>
+        </Card>
+
+        {/* Upload Expirado */}
+        {isExpired ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Este link de upload expirou. Solicite um novo link à equipe.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            {/* Upload de documentos */}
+            <DocumentUpload processType={linkData.tipo_processo} onFilesUploaded={setUploadedFiles} />
+
+            {/* Botão de Enviar */}
+            {uploadedFiles.length > 0 && (
+              <Card className="border-0 shadow-lg mt-8">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Finalizar Envio</h4>
+                      <p className="text-sm text-gray-600">
+                        {uploadedFiles.length} documento(s) pronto(s) para envio
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={uploadedFiles.length === 0}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="lg"
+                    >
+                      Enviar Documentos
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+      </div>
     </div>
-  );
+  )
 }
