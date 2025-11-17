@@ -72,9 +72,9 @@ export default function DadosPessoaisPage() {
   const [state, setState] = useState("");
 
   useEffect(() => {
-    const tempData = localStorage.getItem("tempUserData");
+    const tempData = localStorage.getItem("clienteTemp");
     if (!tempData) {
-      router.push("/abrir-empresa/conta");
+      router.push("/abrir-empresa/clientes");
       return;
     }
     setUserData(JSON.parse(tempData));
