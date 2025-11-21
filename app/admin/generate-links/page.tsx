@@ -27,66 +27,6 @@ import {
 } from "@/components/ui/table";
 import { LinkIcon, Copy, CheckCircle, Trash2, Search } from "lucide-react";
 
-// Accordion (categorias recolhíveis)
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-
-// ---------------------------
-// Lista categorizada de documentos
-// ---------------------------
-const DOCUMENTOS_CATEGORIZADOS: Record<string, string[]> = {
-  "Documentos Pessoais": [
-    "RG (frente e verso)",
-    "CNH (frente e verso, se usada no lugar do RG)",
-    "CPF (se não constar no RG ou CNH)",
-    "Título de Eleitor",
-    "Recibo da última Declaração de Imposto de Renda (IRPF)",
-    "Documento migratório — RNE, CRNM ou protocolo de refúgio",
-  ],
-  "Comprovação de Endereço": [
-    "Comprovante de residência atualizado",
-    "Comprovante de endereço comercial",
-    "Contrato de locação ou autorização de uso do imóvel comercial",
-  ],
-  "Licenças Municipais": [
-    "Comprovante de viabilidade municipal",
-    "Alvará de Funcionamento",
-    "Alvará Provisório",
-    "Licença Sanitária",
-    "Planta baixa ou croqui do estabelecimento",
-  ],
-  "Licenças Estaduais": [
-    "Licença da Vigilância Sanitária Estadual",
-    "Licença Ambiental",
-    "Laudo Técnico de Segurança",
-  ],
-  "Licenças Federais": [
-    "Licença do Corpo de Bombeiros (AVCB ou CLCB)",
-    "Autorização da Polícia Federal",
-    "Autorização do Exército",
-    "Licença da Anvisa",
-    "Licença da Secretaria de Agricultura",
-    "Licença da Secretaria de Transportes",
-    "Licença da Secretaria de Obras ou Urbanismo",
-    "Licença da Prefeitura (específica conforme atividade)",
-  ],
-  "Pós-Abertura": [
-    "Comprovante de inscrição estadual",
-    "Comprovante de inscrição municipal",
-    "Cartão do CNPJ",
-    "Certificado CCMEI",
-    "Comprovantes de pagamento DAS-MEI",
-    "Certificado de Conclusão de Curso",
-    "Carteira de Conselho Profissional",
-    "Relatório fotográfico do local",
-  ],
-};
-
-// Tipos
 interface ClientesOption {
   value: string;
   label: string;
@@ -112,7 +52,8 @@ interface GeneratedLink {
   createdAt: string;
   expiresAt: string;
   used: boolean;
-  documentos?: string[]; // documentos associados ao processo (se houver)
+  // can be array of ids (numbers) or names (strings) depending on data source
+  documentos?: Array<number | string>;
 }
 
 export default function GenerateLinksPage() {
@@ -126,17 +67,17 @@ export default function GenerateLinksPage() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchLink, setSearchLink] = useState("");
-
-  // --- Novos estados para documentos ---
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [docError, setDocError] = useState<string>("");
+  const [docsFromBackend, setDocsFromBackend] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
 
   // Buscar dados
   const fetchClientes = async () => {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: Bearer ${token} },
       });
       const data = resp.data;
       setAllClientes(
@@ -155,7 +96,7 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/tiposProcesso", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: Bearer ${token} },
       });
       const data = resp.data;
       setAllProcessos(
@@ -174,7 +115,7 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: Bearer ${token} },
       });
       return resp.data;
     } catch (err) {
@@ -187,34 +128,49 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const respLinks = await axios.get("https://projeto-back-ten.vercel.app/processos", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: Bearer ${token} },
       });
       const linksData = respLinks.data;
-
       const clientesMap = allClientes.reduce((acc, c) => {
         acc[c.id_cliente] = c.label;
         return acc;
       }, {} as Record<number, string>);
 
+      const processosMap = allProcessos.reduce((acc, p) => {
+        acc[p.id_tipo_processo] = p.label;
+        return acc;
+      }, {} as Record<number, string>);
+
       const allEmpresas = await fetchAllCompanies();
       const empresasMap = allEmpresas.reduce((acc: Record<number, string>, e: any) => {
-        acc[e.id_cnpj] = `${e.nome} (CNPJ: ${e.numero_cnpj})`;
+        acc[e.id_cnpj] = ${e.nome} (CNPJ: ${e.numero_cnpj});
         return acc;
       }, {});
 
-      const formattedLinks: GeneratedLink[] = linksData.map((item: any) => ({
-        id: String(item.id_processo),
-        clientName: clientesMap[item.id_cliente] || "Cliente não informado",
-        companyName: empresasMap[item.id_cnpj] || "Empresa não informada",
-        processType: item.tipo || "Tipo não informado",
-        link: item.link || "Sem link",
-        status: item.status_link || "Desconhecido",
-        createdAt: item.data_atualizacao || new Date().toISOString(),
-        expiresAt: item.data_expiracao || "",
-        used: item.status_link?.toLowerCase() === "usado",
-        // aceita ambos os formatos que o backend pode retornar
-        documentos: item.documentos || item.documentos_requeridos || [],
-      }));
+      const formattedLinks: GeneratedLink[] = linksData.map((item: any) => {
+        const docsFromItem = item.documentos || item.documentos_requeridos || [];
+        const normalizedDocs = (Array.isArray(docsFromItem) ? docsFromItem : []).map((d: any) => {
+          if (typeof d === "number") return d;
+          if (typeof d === "string" && /^\d+$/.test(d)) return Number(d);
+          return d;
+        });
+
+        return {
+          id: String(item.id_processo),
+          clientName: clientesMap[item.id_cliente] || "Cliente não informado",
+          companyName: empresasMap[item.id_cnpj] || "Empresa não informada",
+          processType:
+            processosMap[item.id_tipo_processo] ||
+            item.tipo ||
+            "Tipo não informado",
+          link: item.link || https://projeto-front.vercel.app/visualizardocumentos/${item.id_processo},
+          status: item.status_link || "Desconhecido",
+          createdAt: item.data_atualizacao || new Date().toISOString(),
+          expiresAt: item.data_expiracao || "",
+          used: item.status_link?.toLowerCase() === "usado",
+          documentos: normalizedDocs,
+        } as GeneratedLink;
+      });
 
       setGeneratedLinks(formattedLinks);
     } catch (error) {
@@ -222,17 +178,53 @@ export default function GenerateLinksPage() {
     }
   };
 
+  // ---------- Nova função: buscar lista de documentos do backend ----------
+  const fetchDocumentsFromBackend = async () => {
+    setLoadingDocs(true);
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await axios.get("https://projeto-back-ten.vercel.app/visualizardocumentos", {
+        headers: { Authorization: Bearer ${token} },
+      });
+
+      const data = resp.data;
+      console.log("DOCUMENTOS RECEBIDOS DO BACKEND:", resp.data);
+
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => {
+          const A = (typeof a === "string" ? a : a.nome)?.toLowerCase();
+          const B = (typeof b === "string" ? b : b.nome)?.toLowerCase();
+          return A.localeCompare(B);
+        });
+
+        setDocsFromBackend(sorted);
+      } else {
+        console.warn("Resposta /visualizardocumentos não é array:", data);
+        setDocsFromBackend([]);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar documentos do backend:", err);
+      setDocsFromBackend([]);
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  // --- inicializa dados (clientes, tipos de processo, docs)
   useEffect(() => {
     const loadData = async () => {
-      await fetchClientes();
-      await fetchProcessos();
+      await Promise.all([fetchClientes(), fetchProcessos(), fetchDocumentsFromBackend()]);
     };
     loadData();
   }, []);
 
+  // gerar links depois que clientes e processos estiverem prontos
   useEffect(() => {
-    if (allClientes.length > 0) fetchGeneratedLinks();
-  }, [allClientes]);
+    if (allClientes.length > 0 && allProcessos.length > 0) {
+      fetchGeneratedLinks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allClientes, allProcessos]);
 
   useEffect(() => {
     const loadClientCompanies = async () => {
@@ -245,13 +237,13 @@ export default function GenerateLinksPage() {
       try {
         const token = localStorage.getItem("token");
         const resp = await axios.get(
-          `https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente},
+          { headers: { Authorization: Bearer ${token} } }
         );
 
         const empresas = resp.data.map((e: any) => ({
           value: String(e.id_cnpj),
-          label: `${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"})`,
+          label: ${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"}),
           id_cnpj: e.id_cnpj,
         }));
 
@@ -269,7 +261,6 @@ export default function GenerateLinksPage() {
   const handleGenerateLink = async () => {
     if (!selectedClient || !selectedCompany || !selectedProcess) return;
 
-    // validação: precisa selecionar ao menos 1 documento
     if (selectedDocuments.length === 0) {
       setDocError("Selecione ao menos 1 documento.");
       return;
@@ -279,45 +270,64 @@ export default function GenerateLinksPage() {
     setIsGenerating(true);
 
     try {
-      // Por padrão uso o campo "documentos_requeridos" no POST.
-      // Se o backend esperar outro nome, substitua "documentos_requeridos" pela chave correta.
+      const nomesSelecionados = selectedDocuments.map((docId) => {
+        const doc = docsFromBackend.find(
+          (d, idx) => String(d.id_tipo_documento ?? d.id ?? idx) === docId
+        );
+        return docLabel(doc);
+      });
+
       const requestData = {
         id_cliente: selectedClient.id_cliente,
         id_cnpj: selectedCompany.id_cnpj,
         id_tipo_processo: selectedProcess.id_tipo_processo,
-        documentos_requeridos: selectedDocuments, // <-- substitua o nome da chave quando souber
+        documentos_requeridos: selectedDocuments.map(Number),
         status: "pendente",
       };
 
       const response = await axios.post(
         "https://projeto-back-ten.vercel.app/processo",
         requestData,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        { headers: { Authorization: Bearer ${localStorage.getItem("token")} } }
       );
 
       const { link, data_expiracao, id } = response.data;
+
       const newLink: GeneratedLink = {
         id,
         clientName: selectedClient.label,
         companyName: selectedCompany.label,
         processType: selectedProcess.label,
-        link,
+        link: link || https://projeto-front.vercel.app/visualizardocumentos/${id},
         status: "Ativo",
         createdAt: new Date().toISOString(),
         expiresAt: data_expiracao,
         used: false,
-        documentos: selectedDocuments,
+        documentos: nomesSelecionados, // nomes para UX imediato
       };
 
       setGeneratedLinks((prev) => [...prev, newLink]);
-      setGeneratedLink(link);
+      setGeneratedLink(newLink.link);
 
-      // opcional: limpa seleção de documentos após gerar (se quiser manter, remova)
       setSelectedDocuments([]);
     } catch (error) {
       console.error("Erro ao gerar o link:", error);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // função para deletar link no backend e atualizar UI
+  const handleDeleteLink = async (id: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(https://projeto-back-ten.vercel.app/processo/${id}, {
+        headers: { Authorization: Bearer ${token} },
+      });
+
+      setGeneratedLinks((prev) => prev.filter((l) => l.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar link:", err);
     }
   };
 
@@ -344,13 +354,39 @@ export default function GenerateLinksPage() {
       link.status.toLowerCase().includes(term)
     );
   });
-
+vercel
   // helper para alternar doc
-  const toggleDocument = (doc: string) => {
+  const toggleDocument = (docId: string) => {
+    if (docError) setDocError("");
+
     setSelectedDocuments((prev) =>
-      prev.includes(doc) ? prev.filter((d) => d !== doc) : [...prev, doc]
+      prev.includes(docId) ? prev.filter((d) => d !== docId) : [...prev, docId]
     );
-    if (docError && selectedDocuments.length > 0) setDocError("");
+  };
+
+  // helper para extrair rótulo do item retornado pelo backend
+  const docLabel = (doc: any) => {
+    if (typeof doc === "string") return doc;
+    if (doc === null || doc === undefined) return String(doc);
+    return doc.nome || doc.name || doc.tipo || doc.label || String(doc);
+  };
+
+  // helper para extrair valor único (id ou nome) para checkbox
+  const docValue = (doc: any, idx: number) => {
+    return String(doc.id_tipo_documento ?? doc.id ?? idx);
+  };
+
+  // helper para obter nome a partir de um id (usa docsFromBackend)
+  const getDocNameById = (id: number | string) => {
+    // se já for string não-numérica, retorna direto
+    if (typeof id === "string" && !/^\d+$/.test(id)) return String(id);
+
+    const numericId = typeof id === "number" ? id : Number(String(id));
+    const found = docsFromBackend.find(
+      (d, idx) => Number(d.id_tipo_documento ?? d.id ?? idx) === numericId
+    );
+    if (found) return docLabel(found);
+    return Documento ${numericId};
   };
 
   return (
@@ -358,11 +394,7 @@ export default function GenerateLinksPage() {
       <AdminLayout>
         <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
           <div>
-           <h1 className="flex items-center text-2xl sm:text-3xl font-bold text-gray-900">
-              <LinkIcon className="w-7 h-7 mr-3 text-blue-600" />
-              Geração de Links
-            </h1>
-
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Geração de Links</h1>
             <p className="text-gray-600 text-sm sm:text-base mt-1">
               Crie links personalizados para upload de documentos
             </p>
@@ -386,7 +418,7 @@ export default function GenerateLinksPage() {
                     <Select
                       options={allClientes}
                       value={selectedClient}
-                      onChange={(opt) => setSelectedClient(opt)}
+                      onChange={(opt: any) => setSelectedClient(opt)}
                       placeholder="Selecione um cliente"
                     />
                   </div>
@@ -397,7 +429,7 @@ export default function GenerateLinksPage() {
                       <Select
                         options={clientCompanies}
                         value={selectedCompany}
-                        onChange={(opt) => setSelectedCompany(opt)}
+                        onChange={(opt: any) => setSelectedCompany(opt)}
                         placeholder="Selecione uma empresa"
                       />
                     </div>
@@ -408,51 +440,47 @@ export default function GenerateLinksPage() {
                     <Select
                       options={allProcessos}
                       value={selectedProcess}
-                      onChange={(opt) => setSelectedProcess(opt)}
+                      onChange={(opt: any) => setSelectedProcess(opt)}
                       placeholder="Selecione o tipo de processo"
                     />
                   </div>
 
-                  {/* ========== Accordion com categorias de documentos (decorativo) ========== */}
+                  {/* ========== Lista PLANA de documentos (vinda do backend) ========== */}
                   <div className="mt-2">
                     <Label>Documentos Necessários</Label>
                     {docError && <p className="text-red-600 text-sm">{docError}</p>}
 
-                    <Accordion type="multiple" className="mt-2">
-                      {Object.entries(DOCUMENTOS_CATEGORIZADOS).map(([categoria, docs]) => (
-                        <AccordionItem key={categoria} value={categoria}>
-                          <AccordionTrigger className="text-sm font-medium">
-                            {categoria}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="grid grid-cols-1 gap-2 py-2">
-                              {docs.map((doc) => (
-                                <label
-                                  key={doc}
-                                  className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="h-4 w-4"
-                                    checked={selectedDocuments.includes(doc)}
-                                    onChange={() => toggleDocument(doc)}
-                                    value={doc}
-                                  />
-                                  <span className="text-sm">{doc}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-
-                    <p className="text-xs text-gray-500 mt-2">
-                      Observação: as categorias são apenas decorativas — o que será enviado e
-                      considerado são os documentos marcados. Atualmente os documentos são enviados
-                      no POST como <code>documentos_requeridos</code>. Troque essa chave no código se
-                      o backend esperar um nome diferente.
-                    </p>
+                    <div className="mt-2">
+                      {loadingDocs ? (
+                        <p className="text-sm text-gray-500">Carregando documentos...</p>
+                      ) : docsFromBackend.length === 0 ? (
+                        <p className="text-sm text-gray-500">Nenhum documento disponível.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2 py-2">
+                          {docsFromBackend.map((doc, idx) => {
+                            const label = docLabel(doc);
+                            const value = docValue(doc, idx);
+                            // o selectedDocuments armazena values (strings)
+                            const checked = selectedDocuments.includes(value);
+                            return (
+                              <label
+                                key={${value}}
+                                className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50"
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4"
+                                  checked={checked}
+                                  onChange={() => toggleDocument(value)}
+                                  value={value}
+                                />
+                                <span className="text-sm">{label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <Button
@@ -470,9 +498,7 @@ export default function GenerateLinksPage() {
                       <CheckCircle className="h-4 w-4" />
                       <AlertDescription>
                         <div className="space-y-2">
-                          <p className="font-medium text-sm sm:text-base">
-                            Link gerado com sucesso!
-                          </p>
+                          <p className="font-medium text-sm sm:text-base">Link gerado com sucesso!</p>
                           <div className="flex flex-col sm:flex-row gap-2">
                             <Input value={generatedLink} readOnly className="text-xs" />
                             <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
@@ -532,43 +558,50 @@ export default function GenerateLinksPage() {
                               <TableCell>{link.companyName}</TableCell>
                               <TableCell>{link.processType}</TableCell>
                               <TableCell>
-                                <Badge className={getStatusColor(link.status)}>
-                                  {link.status}
-                                </Badge>
+                                <Badge className={getStatusColor(link.status)}>{link.status}</Badge>
                               </TableCell>
 
                               <TableCell>
                                 {link.documentos && link.documentos.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
-                                    {link.documentos.map((d, i) => (
-                                      <Badge key={i} className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                                        {d}
-                                      </Badge>
-                                    ))}
+                                    {link.documentos.map((d, i) => {
+                                      // d pode ser id number ou nome string
+                                      const displayName =
+                                        typeof d === "number"
+                                          ? getDocNameById(d)
+                                          : (typeof d === "string" && /^\d+$/.test(d)
+                                              ? getDocNameById(Number(d))
+                                              : String(d));
+                                      return (
+                                        <Badge
+                                          key={i}
+                                          className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+                                        >
+                                          {displayName}
+                                        </Badge>
+                                      );
+                                    })}
                                   </div>
                                 ) : (
                                   <span className="text-gray-500 text-xs">—</span>
                                 )}
                               </TableCell>
 
+                              <TableCell>{new Date(link.createdAt).toLocaleDateString("pt-BR")}</TableCell>
                               <TableCell>
-                                {new Date(link.createdAt).toLocaleDateString("pt-BR")}
-                              </TableCell>
-                              <TableCell>
-                                {link.expiresAt
-                                  ? new Date(link.expiresAt).toLocaleDateString("pt-BR")
-                                  : ""}
+                                {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString("pt-BR") : ""}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center space-x-2">
+                                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
+                                    <Copy className="w-3 h-3" />
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => copyToClipboard(link.link)}
+                                    className="text-red-600"
+                                    onClick={() => handleDeleteLink(link.id)}
                                   >
-                                    <Copy className="w-3 h-3" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="text-red-600">
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
                                 </div>
