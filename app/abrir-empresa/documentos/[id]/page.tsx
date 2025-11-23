@@ -35,7 +35,7 @@ export default function DocumentosPageDinamic() {
     const fetchDocs = async () => {
       try {
         const res = await fetch(
-          https://projeto-back-ten.vercel.app/processos/${id}
+          `https://projeto-back-ten.vercel.app/processos/${id}`
         );
 
         if (!res.ok) throw new Error("Erro ao carregar documentos");
@@ -178,7 +178,7 @@ export default function DocumentosPageDinamic() {
                         <input
                           type="file"
                           accept="image/*,application/pdf"
-                          id={file-${document}}
+                          id={`file-${document}`}
                           style={{ display: "none" }}
                           onChange={(e) =>
                             handleFileChange(
@@ -187,7 +187,7 @@ export default function DocumentosPageDinamic() {
                             )
                           }
                         />
-                        <label htmlFor={file-${document}}>
+                        <label htmlFor={`file-${document}`}>
                           <Button asChild variant="outline" size="sm">
                             <span>
                               <Upload className="w-4 h-4 mr-2" />
@@ -237,7 +237,7 @@ export default function DocumentosPageDinamic() {
                             <iframe
                               src={uploadedFiles[document]!.preview}
                               className="w-full h-60 border rounded-md"
-                              title={${document}-preview}
+                              title={`${document}-preview`}
                             />
                           )}
 
@@ -278,3 +278,4 @@ export default function DocumentosPageDinamic() {
     </div>
   );
 }
+

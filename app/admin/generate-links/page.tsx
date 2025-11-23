@@ -52,8 +52,7 @@ interface GeneratedLink {
   createdAt: string;
   expiresAt: string;
   used: boolean;
-  // can be array of ids (numbers) or names (strings) depending on data source
-  documentos?: Array<number | string>;
+  documentos?: string[];
 }
 
 export default function GenerateLinksPage() {
@@ -67,8 +66,12 @@ export default function GenerateLinksPage() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchLink, setSearchLink] = useState("");
+
+  // --- Novos estados para documentos ---
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [docError, setDocError] = useState<string>("");
+
+  // lista simples de documentos vinda do backend (/visualizardocumentos)
   const [docsFromBackend, setDocsFromBackend] = useState<any[]>([]);
   const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
 
@@ -77,7 +80,7 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/clientes", {
-        headers: { Authorization: Bearer ${token} },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = resp.data;
       setAllClientes(
@@ -96,7 +99,7 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/tiposProcesso", {
-        headers: { Authorization: Bearer ${token} },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = resp.data;
       setAllProcessos(
@@ -115,7 +118,7 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const resp = await axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
-        headers: { Authorization: Bearer ${token} },
+        headers: { Authorization: `Bearer ${token}` },
       });
       return resp.data;
     } catch (err) {
@@ -128,49 +131,34 @@ export default function GenerateLinksPage() {
     try {
       const token = localStorage.getItem("token");
       const respLinks = await axios.get("https://projeto-back-ten.vercel.app/processos", {
-        headers: { Authorization: Bearer ${token} },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const linksData = respLinks.data;
+
       const clientesMap = allClientes.reduce((acc, c) => {
         acc[c.id_cliente] = c.label;
         return acc;
       }, {} as Record<number, string>);
 
-      const processosMap = allProcessos.reduce((acc, p) => {
-        acc[p.id_tipo_processo] = p.label;
-        return acc;
-      }, {} as Record<number, string>);
-
       const allEmpresas = await fetchAllCompanies();
       const empresasMap = allEmpresas.reduce((acc: Record<number, string>, e: any) => {
-        acc[e.id_cnpj] = ${e.nome} (CNPJ: ${e.numero_cnpj});
+        acc[e.id_cnpj] = `${e.nome} (CNPJ: ${e.numero_cnpj})`;
         return acc;
       }, {});
 
-      const formattedLinks: GeneratedLink[] = linksData.map((item: any) => {
-        const docsFromItem = item.documentos || item.documentos_requeridos || [];
-        const normalizedDocs = (Array.isArray(docsFromItem) ? docsFromItem : []).map((d: any) => {
-          if (typeof d === "number") return d;
-          if (typeof d === "string" && /^\d+$/.test(d)) return Number(d);
-          return d;
-        });
-
-        return {
-          id: String(item.id_processo),
-          clientName: clientesMap[item.id_cliente] || "Cliente não informado",
-          companyName: empresasMap[item.id_cnpj] || "Empresa não informada",
-          processType:
-            processosMap[item.id_tipo_processo] ||
-            item.tipo ||
-            "Tipo não informado",
-          link: item.link || https://projeto-front.vercel.app/visualizardocumentos/${item.id_processo},
-          status: item.status_link || "Desconhecido",
-          createdAt: item.data_atualizacao || new Date().toISOString(),
-          expiresAt: item.data_expiracao || "",
-          used: item.status_link?.toLowerCase() === "usado",
-          documentos: normalizedDocs,
-        } as GeneratedLink;
-      });
+      const formattedLinks: GeneratedLink[] = linksData.map((item: any) => ({
+        id: String(item.id_processo),
+        clientName: clientesMap[item.id_cliente] || "Cliente não informado",
+        companyName: empresasMap[item.id_cnpj] || "Empresa não informada",
+        processType: item.tipo || "Tipo não informado",
+        // manter link conforme backend ou sobrescrever se necessário
+        link: item.link || `https://projeto-front.vercel.app/visualizardocumentos/${item.id_processo}`,
+        status: item.status_link || "Desconhecido",
+        createdAt: item.data_atualizacao || new Date().toISOString(),
+        expiresAt: item.data_expiracao || "",
+        used: item.status_link?.toLowerCase() === "usado",
+        documentos: item.documentos || item.documentos_requeridos || [],
+      }));
 
       setGeneratedLinks(formattedLinks);
     } catch (error) {
@@ -180,51 +168,50 @@ export default function GenerateLinksPage() {
 
   // ---------- Nova função: buscar lista de documentos do backend ----------
   const fetchDocumentsFromBackend = async () => {
-    setLoadingDocs(true);
-    try {
-      const token = localStorage.getItem("token");
-      const resp = await axios.get("https://projeto-back-ten.vercel.app/visualizardocumentos", {
-        headers: { Authorization: Bearer ${token} },
+  setLoadingDocs(true);
+  try {
+    const token = localStorage.getItem("token");
+    const resp = await axios.get("https://projeto-back-ten.vercel.app/visualizardocumentos", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = resp.data;
+    console.log("DOCUMENTOS RECEBIDOS DO BACKEND:", resp.data);
+
+
+    if (Array.isArray(data)) {
+      // AQUI: ORDENAR ANTES DE SALVAR
+      const sorted = [...data].sort((a, b) => {
+        const A = (typeof a === "string" ? a : a.nome)?.toLowerCase();
+        const B = (typeof b === "string" ? b : b.nome)?.toLowerCase();
+        return A.localeCompare(B);
       });
 
-      const data = resp.data;
-      console.log("DOCUMENTOS RECEBIDOS DO BACKEND:", resp.data);
-
-      if (Array.isArray(data)) {
-        const sorted = [...data].sort((a, b) => {
-          const A = (typeof a === "string" ? a : a.nome)?.toLowerCase();
-          const B = (typeof b === "string" ? b : b.nome)?.toLowerCase();
-          return A.localeCompare(B);
-        });
-
-        setDocsFromBackend(sorted);
-      } else {
-        console.warn("Resposta /visualizardocumentos não é array:", data);
-        setDocsFromBackend([]);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar documentos do backend:", err);
+      setDocsFromBackend(sorted);
+    } else {
+      console.warn("Resposta /visualizardocumentos não é array:", data);
       setDocsFromBackend([]);
-    } finally {
-      setLoadingDocs(false);
     }
-  };
+  } catch (err) {
+    console.error("Erro ao buscar documentos do backend:", err);
+    setDocsFromBackend([]);
+  } finally {
+    setLoadingDocs(false);
+  }
+};
 
-  // --- inicializa dados (clientes, tipos de processo, docs)
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchClientes(), fetchProcessos(), fetchDocumentsFromBackend()]);
+      await fetchClientes();
+      await fetchProcessos();
+      await fetchDocumentsFromBackend(); // busca os documentos ao montar
     };
     loadData();
   }, []);
 
-  // gerar links depois que clientes e processos estiverem prontos
   useEffect(() => {
-    if (allClientes.length > 0 && allProcessos.length > 0) {
-      fetchGeneratedLinks();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allClientes, allProcessos]);
+    if (allClientes.length > 0) fetchGeneratedLinks();
+  }, [allClientes]);
 
   useEffect(() => {
     const loadClientCompanies = async () => {
@@ -237,13 +224,13 @@ export default function GenerateLinksPage() {
       try {
         const token = localStorage.getItem("token");
         const resp = await axios.get(
-          https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente},
-          { headers: { Authorization: Bearer ${token} } }
+          `https://projeto-back-ten.vercel.app/cliente_cnpjs/${selectedClient.id_cliente}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const empresas = resp.data.map((e: any) => ({
           value: String(e.id_cnpj),
-          label: ${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"}),
+          label: `${e.nome} (CNPJ: ${e.numero_cnpj || "N/A"})`,
           id_cnpj: e.id_cnpj,
         }));
 
@@ -261,6 +248,7 @@ export default function GenerateLinksPage() {
   const handleGenerateLink = async () => {
     if (!selectedClient || !selectedCompany || !selectedProcess) return;
 
+    // validação: precisa selecionar ao menos 1 documento
     if (selectedDocuments.length === 0) {
       setDocError("Selecione ao menos 1 documento.");
       return;
@@ -270,13 +258,6 @@ export default function GenerateLinksPage() {
     setIsGenerating(true);
 
     try {
-      const nomesSelecionados = selectedDocuments.map((docId) => {
-        const doc = docsFromBackend.find(
-          (d, idx) => String(d.id_tipo_documento ?? d.id ?? idx) === docId
-        );
-        return docLabel(doc);
-      });
-
       const requestData = {
         id_cliente: selectedClient.id_cliente,
         id_cnpj: selectedCompany.id_cnpj,
@@ -288,46 +269,32 @@ export default function GenerateLinksPage() {
       const response = await axios.post(
         "https://projeto-back-ten.vercel.app/processo",
         requestData,
-        { headers: { Authorization: Bearer ${localStorage.getItem("token")} } }
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
 
       const { link, data_expiracao, id } = response.data;
-
       const newLink: GeneratedLink = {
         id,
         clientName: selectedClient.label,
         companyName: selectedCompany.label,
         processType: selectedProcess.label,
-        link: link || https://projeto-front.vercel.app/visualizardocumentos/${id},
+        link: link || `https://projeto-front.vercel.app/visualizardocumentos/${id}`,
         status: "Ativo",
         createdAt: new Date().toISOString(),
         expiresAt: data_expiracao,
         used: false,
-        documentos: nomesSelecionados, // nomes para UX imediato
+        documentos: selectedDocuments,
       };
 
       setGeneratedLinks((prev) => [...prev, newLink]);
       setGeneratedLink(newLink.link);
 
+      // limpa seleção após gerar (opcional)
       setSelectedDocuments([]);
     } catch (error) {
       console.error("Erro ao gerar o link:", error);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  // função para deletar link no backend e atualizar UI
-  const handleDeleteLink = async (id: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(https://projeto-back-ten.vercel.app/processo/${id}, {
-        headers: { Authorization: Bearer ${token} },
-      });
-
-      setGeneratedLinks((prev) => prev.filter((l) => l.id !== id));
-    } catch (err) {
-      console.error("Erro ao deletar link:", err);
     }
   };
 
@@ -354,15 +321,18 @@ export default function GenerateLinksPage() {
       link.status.toLowerCase().includes(term)
     );
   });
-vercel
+
   // helper para alternar doc
   const toggleDocument = (docId: string) => {
-    if (docError) setDocError("");
+  if (docError) setDocError("");
 
-    setSelectedDocuments((prev) =>
-      prev.includes(docId) ? prev.filter((d) => d !== docId) : [...prev, docId]
-    );
-  };
+  setSelectedDocuments((prev) =>
+    prev.includes(docId)
+      ? prev.filter((d) => d !== docId)
+      : [...prev, docId]
+  );
+};
+
 
   // helper para extrair rótulo do item retornado pelo backend
   const docLabel = (doc: any) => {
@@ -373,21 +343,9 @@ vercel
 
   // helper para extrair valor único (id ou nome) para checkbox
   const docValue = (doc: any, idx: number) => {
-    return String(doc.id_tipo_documento ?? doc.id ?? idx);
-  };
+  return String(doc.id_tipo_documento ?? doc.id ?? idx);
+};
 
-  // helper para obter nome a partir de um id (usa docsFromBackend)
-  const getDocNameById = (id: number | string) => {
-    // se já for string não-numérica, retorna direto
-    if (typeof id === "string" && !/^\d+$/.test(id)) return String(id);
-
-    const numericId = typeof id === "number" ? id : Number(String(id));
-    const found = docsFromBackend.find(
-      (d, idx) => Number(d.id_tipo_documento ?? d.id ?? idx) === numericId
-    );
-    if (found) return docLabel(found);
-    return Documento ${numericId};
-  };
 
   return (
     <AuthGuard requiredRole="admin">
@@ -418,7 +376,7 @@ vercel
                     <Select
                       options={allClientes}
                       value={selectedClient}
-                      onChange={(opt: any) => setSelectedClient(opt)}
+                      onChange={(opt) => setSelectedClient(opt)}
                       placeholder="Selecione um cliente"
                     />
                   </div>
@@ -429,7 +387,7 @@ vercel
                       <Select
                         options={clientCompanies}
                         value={selectedCompany}
-                        onChange={(opt: any) => setSelectedCompany(opt)}
+                        onChange={(opt) => setSelectedCompany(opt)}
                         placeholder="Selecione uma empresa"
                       />
                     </div>
@@ -440,7 +398,7 @@ vercel
                     <Select
                       options={allProcessos}
                       value={selectedProcess}
-                      onChange={(opt: any) => setSelectedProcess(opt)}
+                      onChange={(opt) => setSelectedProcess(opt)}
                       placeholder="Selecione o tipo de processo"
                     />
                   </div>
@@ -464,7 +422,7 @@ vercel
                             const checked = selectedDocuments.includes(value);
                             return (
                               <label
-                                key={${value}}
+                                key={`${value}`}
                                 className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50"
                               >
                                 <input
@@ -481,6 +439,7 @@ vercel
                         </div>
                       )}
                     </div>
+
                   </div>
 
                   <Button
@@ -564,23 +523,14 @@ vercel
                               <TableCell>
                                 {link.documentos && link.documentos.length > 0 ? (
                                   <div className="flex flex-wrap gap-1">
-                                    {link.documentos.map((d, i) => {
-                                      // d pode ser id number ou nome string
-                                      const displayName =
-                                        typeof d === "number"
-                                          ? getDocNameById(d)
-                                          : (typeof d === "string" && /^\d+$/.test(d)
-                                              ? getDocNameById(Number(d))
-                                              : String(d));
-                                      return (
-                                        <Badge
-                                          key={i}
-                                          className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
-                                        >
-                                          {displayName}
-                                        </Badge>
-                                      );
-                                    })}
+                                    {link.documentos.map((d, i) => (
+                                      <Badge
+                                        key={i}
+                                        className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+                                      >
+                                        {d}
+                                      </Badge>
+                                    ))}
                                   </div>
                                 ) : (
                                   <span className="text-gray-500 text-xs">—</span>
@@ -596,12 +546,7 @@ vercel
                                   <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
                                     <Copy className="w-3 h-3" />
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-red-600"
-                                    onClick={() => handleDeleteLink(link.id)}
-                                  >
+                                  <Button size="sm" variant="ghost" className="text-red-600">
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
                                 </div>
