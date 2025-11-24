@@ -12,18 +12,18 @@ export default function AboutPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-center md:justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center justify-center space-x-3">
-            <div className="w-32 h-32 md:w-24 md:h-24 bg-transparent rounded-full flex items-center justify-center">
+            <div className="w-24 h-24 md:w-24 md:h-24 bg-transparent rounded-full flex items-center justify-center">
               <Image
                 src="/Facilitajs.svg"
                 alt="Logo"
-                width={128}
-                height={128}
+                width={96}
+                height={96}
                 className="object-contain"
               />
             </div>
           </Link>
 
-          {/* Botões - aparecem no topo só no desktop */}
+          {/* Botões - desktop */}
           <div className="hidden md:flex items-center space-x-3">
             <Link href="/">
               <Button variant="ghost" className="text-blue-600 hover:text-white hover:bg-blue-100">
@@ -43,24 +43,80 @@ export default function AboutPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="min-h-[80vh] flex flex-col justify-center items-center text-center md:text-left md:grid md:grid-cols-2 gap-10 container mx-auto px-6 md:px-8">
-        {/* Texto à esquerda */}
-        <div>
-          <Badge className="mb-3 bg-blue-100 text-blue-700 hover:bg-blue-100">
+      <section
+        className="
+          min-h-[70vh]
+          flex flex-col
+          justify-start
+          items-center
+          text-center
+          md:text-left
+          md:grid
+          md:grid-cols-2
+          gap-10
+          container
+          mx-auto
+          px-6
+          md:px-8
+        "
+      >
+        {/* Texto */}
+        <div className="mt-4 md:mt-0">
+          <Badge
+            className="
+              mb-3
+              bg-blue-100
+              text-blue-700
+              hover:bg-blue-100
+              text-sm
+              mx-auto
+              md:mx-0
+            "
+          >
             Sobre o Projeto
           </Badge>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+
+          <h2
+            className="
+              text-3xl
+              md:text-5xl
+              lg:text-6xl
+              font-bold
+              text-gray-900
+              mb-4
+              leading-snug
+              text-justify
+              md:text-left
+            "
+          >
             Conheça o <span className="text-blue-600">FACILITA JÁ</span>
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl mx-auto md:mx-0">
-            Uma plataforma inovadora criada para revolucionar a gestão de processos empresariais no Brasil,
-            tornando a abertura, alteração e fechamento de CNPJ mais simples e eficiente.
+
+          <p
+            className="
+              text-base
+              md:text-xl
+              text-gray-600
+              mb-6
+              max-w-xl
+              mx-auto
+              md:mx-0
+              text-justify
+            "
+          >
+            Um projeto inovador criado para transformar a maneira como empresas enfrentam
+            processos no Brasil. Nossa proposta é tornar a abertura, alteração e fechamento
+            de CNPJ muito mais simples, rápida e acessível por meio de uma plataforma totalmente
+            digital.
           </p>
 
-          {/* Botões - aparecem abaixo do texto no mobile */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center md:hidden">
+          {/* Botões mobile */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center md:hidden mt-2">
             <Link href="/">
-              <Button variant="ghost" className="text-blue-600 hover:text-white hover:bg-blue-100 w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                className="text-blue-600 hover:text-white hover:bg-blue-100 w-full sm:w-auto"
+              >
                 Voltar ao Início
               </Button>
             </Link>
@@ -75,7 +131,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Imagem - oculta no mobile */}
+        {/* Imagem */}
         <div className="hidden md:flex justify-center md:justify-end w-full">
           <Image
             src="/mesa.png"
@@ -97,8 +153,9 @@ export default function AboutPage() {
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Nossa Missão</h3>
               <p className="text-gray-600 text-base md:text-lg mb-4">
-                Simplificar e democratizar o acesso aos processos empresariais no Brasil, oferecendo uma plataforma
-                digital completa que elimina a burocracia desnecessária e acelera a formalização de negócios.
+                Simplificar e democratizar o acesso aos processos empresariais no Brasil, oferecendo
+                uma plataforma digital completa que elimina a burocracia e acelera a formalização de
+                negócios.
               </p>
               <div className="space-y-3">
                 {[
@@ -134,7 +191,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* Como Funciona */}
       <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50 text-center">
         <div className="container mx-auto px-6 md:px-8">
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Como Funciona</h3>
@@ -157,14 +214,16 @@ export default function AboutPage() {
               {
                 num: "3",
                 title: "Conclusão",
-                desc: "Receba todos os documentos da sua empresa e comece a operar legalmente",
+                desc: "Receba todos os documentos e comece a operar legalmente",
               },
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-white">{item.num}</span>
                 </div>
-                <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{item.title}</h4>
+                <h4 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                  {item.title}
+                </h4>
                 <p className="text-gray-600 text-base">{item.desc}</p>
               </div>
             ))}
@@ -172,12 +231,13 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700 text-center">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">Pronto para começar?</h3>
           <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de empreendedores que já confiam no FACILITA para seus processos empresariais
+            Junte-se a milhares de empreendedores que já confiam no FACILITA para seus processos
+            empresariais
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
@@ -206,16 +266,12 @@ export default function AboutPage() {
             <div>
               <div className="flex justify-center md:justify-start items-center mb-4">
                 <div className="w-16 h-16 bg-white rounded-full relative flex items-center justify-center">
-                  <Image
-                    src="/Facilitajs.svg"
-                    alt="Logo da Empresa"
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src="/Facilitajs.svg" alt="Logo da Empresa" fill className="object-contain" />
                 </div>
               </div>
               <p className="text-gray-400">Simplificando a gestão empresarial no Brasil</p>
             </div>
+
             <div>
               <h5 className="font-semibold mb-3">Serviços</h5>
               <ul className="space-y-1 text-gray-400 text-sm">
@@ -225,6 +281,7 @@ export default function AboutPage() {
                 <li>Consultoria</li>
               </ul>
             </div>
+
             <div>
               <h5 className="font-semibold mb-3">Suporte</h5>
               <ul className="space-y-1 text-gray-400 text-sm">
@@ -234,6 +291,7 @@ export default function AboutPage() {
                 <li>Documentação</li>
               </ul>
             </div>
+
             <div>
               <h5 className="font-semibold mb-3">Empresa</h5>
               <ul className="space-y-1 text-gray-400 text-sm">
@@ -244,6 +302,7 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
+
           <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-400 text-sm">
             <p>&copy; 2025 FACILITA. Todos os direitos reservados.</p>
           </div>

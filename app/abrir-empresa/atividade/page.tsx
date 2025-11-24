@@ -262,21 +262,7 @@ export default function AtividadePage() {
       <AdminLayout>
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto">
-            {/* Barra de progresso */}
-            <div className="mb-8">
-              <div className="flex items-center text-sm text-gray-600 mb-4">
-                <span className="text-blue-600 font-medium">Etapa 3 de 4</span>
-                <span className="mx-2">•</span>
-                <span>Atividade</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full"
-                  style={{ width: "75%" }}
-                />
-              </div>
-            </div>
-
+          
             <Card className="shadow-xl border-0">
               <CardHeader>
                 <CardTitle className="text-2xl">Atividade da Empresa</CardTitle>
