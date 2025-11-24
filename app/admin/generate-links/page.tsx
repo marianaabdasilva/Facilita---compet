@@ -66,6 +66,7 @@ export default function GenerateLinksPage() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchLink, setSearchLink] = useState("");
+  const [error, setError] = useState<string>("");
 
   // --- Novos estados para documentos ---
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
@@ -245,60 +246,90 @@ export default function GenerateLinksPage() {
     loadClientCompanies();
   }, [selectedClient]);
 
-  const handleGenerateLink = async () => {
-    if (!selectedClient || !selectedCompany || !selectedProcess) return;
+ const handleGenerateLink = async () => {
+  if (!selectedClient || !selectedCompany || !selectedProcess) return;
 
-    // validação: precisa selecionar ao menos 1 documento
-    if (selectedDocuments.length === 0) {
-      setDocError("Selecione ao menos 1 documento.");
-      return;
-    }
+  if (selectedDocuments.length === 0) {
+    setDocError("Selecione ao menos 1 documento.");
+    return;
+  }
 
-    setDocError("");
-    setIsGenerating(true);
+  setDocError("");
+  setIsGenerating(true);
 
-    try {
-      const requestData = {
-        id_cliente: selectedClient.id_cliente,
-        id_cnpj: selectedCompany.id_cnpj,
-        id_tipo_processo: selectedProcess.id_tipo_processo,
-        documentos_requeridos: selectedDocuments.map(Number),
-        status: "pendente",
-      };
-
-      const response = await axios.post(
-        "https://projeto-back-ten.vercel.app/processo",
-        requestData,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+  try {
+    // Monta array com nomes REAIS dos documentos selecionados
+    const nomesSelecionados = selectedDocuments.map((docId) => {
+      const doc = docsFromBackend.find(
+        (d, idx) => String(d.id_tipo_documento ?? d.id ?? idx) === docId
       );
+      return docLabel(doc); // Aqui você já extrai o nome do documento
+    });
 
-      const { link, data_expiracao, id } = response.data;
-      const newLink: GeneratedLink = {
-        id,
-        clientName: selectedClient.label,
-        companyName: selectedCompany.label,
-        processType: selectedProcess.label,
-        link: link || `https://projeto-front.vercel.app/visualizardocumentos/${id}`,
-        status: "Ativo",
-        createdAt: new Date().toISOString(),
-        expiresAt: data_expiracao,
-        used: false,
-        documentos: selectedDocuments,
-      };
+    const requestData = {
+      id_cliente: selectedClient.id_cliente,
+      id_cnpj: selectedCompany.id_cnpj,
+      id_tipo_processo: selectedProcess.id_tipo_processo,
 
-      setGeneratedLinks((prev) => [...prev, newLink]);
+      // IDs dos documentos
+      documentos_requeridos: selectedDocuments.map(Number),
+
+      // NOMES dos documentos — ESSENCIAL para aparecer no upload
+      nomes_documentos: nomesSelecionados,
+
+      status: "pendente",
+    };
+
+    const response = await axios.post(
+      "https://projeto-back-ten.vercel.app/processo",
+      requestData,
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+
+    const { link, data_expiracao, id } = response.data;
+
+    const newLink: GeneratedLink = {
+      id,
+      clientName: selectedClient.label,
+      companyName: selectedCompany.label,
+      processType: selectedProcess.label,
+      link: link || `https://projeto-front.vercel.app/visualizardocumentos/${id}`,
+      status: "Ativo",
+      createdAt: new Date().toISOString(),
+      expiresAt: data_expiracao,
+      used: false,
+      documentos: nomesSelecionados, // Aqui você salva os nomes dos documentos
+    };
+
+    setGeneratedLinks((prev) => [...prev, newLink]);
+    try {
+      // Código para gerar o link
       setGeneratedLink(newLink.link);
-
-      // limpa seleção após gerar (opcional)
-      setSelectedDocuments([]);
     } catch (error) {
       console.error("Erro ao gerar o link:", error);
+      setError("Não foi possível gerar o link. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
-  };
 
-  const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
+    setSelectedDocuments([]);
+  } catch (error) {
+    console.error("Erro ao gerar o link:", error);
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Link copiado para a área de transferência!");
+    } catch (error) {
+      console.error("Erro ao copiar o link:", error);
+      alert("Não foi possível copiar o link. Tente novamente.");
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -453,20 +484,27 @@ export default function GenerateLinksPage() {
                   </Button>
 
                   {generatedLink && (
-                    <Alert className="mt-4">
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <div className="space-y-2">
-                          <p className="font-medium text-sm sm:text-base">Link gerado com sucesso!</p>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <Input value={generatedLink} readOnly className="text-xs" />
-                            <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
-                              <Copy className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
+                    <div className="mt-4 p-4 border border-green-300 bg-green-100 rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <p className="font-medium text-green-700 text-sm sm:text-base">
+                          Link gerado com sucesso! Copie o link abaixo:
+                        </p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                        <Input value={generatedLink} readOnly className="text-xs" />
+                        <Button size="sm" onClick={() => copyToClipboard(generatedLink)}>
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}{error && (
+                    <div className="mt-4 p-4 border border-red-300 bg-red-100 rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <Trash2 className="h-5 w-5 text-red-600" />
+                        <p className="font-medium text-red-700 text-sm sm:text-base">{error}</p>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -528,7 +566,7 @@ export default function GenerateLinksPage() {
                                         key={i}
                                         className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
                                       >
-                                        {d}
+                                        {d} {/* Aqui você já está exibindo o nome do documento */}
                                       </Badge>
                                     ))}
                                   </div>
