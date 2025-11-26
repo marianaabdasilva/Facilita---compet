@@ -29,7 +29,16 @@ export default function AdminDashboard() {
     activeProcesses: 0,
     completedThisMonth: 0,
     pendingRequests: 0,
+    totalAbertura: 0,
+    totalAlteracao: 0,
+    totalFechamento: 0
   })
+
+  const totalProcessos = stats.totalAbertura + stats.totalAlteracao + stats.totalFechamento;
+
+  const percentualAbertura = totalProcessos ? (stats.totalAbertura / totalProcessos) * 100 : 0 
+  const percentualAlteracao = totalProcessos ? (stats.totalAlteracao / totalProcessos) * 100 : 0 
+  const percentualFechamento = totalProcessos ? (stats.totalFechamento / totalProcessos) * 100 : 0 
 
   const [recentRequests, setRecentRequests] = useState<any[]>([])
   const [loadingRecent, setLoadingRecent] = useState<boolean>(true)
@@ -82,8 +91,19 @@ export default function AdminDashboard() {
             activeProcesses: data.totalAtivos ?? 0,
             completedThisMonth: data.completedThisMonth ?? 0,
             pendingRequests: data.totalPendentes ?? 0,
+            totalAbertura: data.totalAberturaCnpj ?? 0,
+            totalAlteracao: data.totalAlteracaoCnpj ?? 0,
+            totalFechamento: data.totalFechamentoCnpj ?? 0
           })
+
+          console.log(`Total Ativos: ${data.totalAtivos},
+          Total Pendente: ${data.totalPendentesCnpj},
+          Total Abertura: ${data.totalAberturaCnpj},
+          Total Alteracao: ${data.totalAlteracaoCnpj},
+          Total Fechamento: ${data.totalFechamentoCnpj}`)
         }
+
+        
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error)
       } finally {
@@ -152,6 +172,8 @@ export default function AdminDashboard() {
     stats.pendingRequests ??
     recentRequests.filter((r) => r.status === "Pendente" || r.status === "Aguardando Link").length
 
+
+    
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -334,23 +356,23 @@ export default function AdminDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs sm:text-sm">
                       <span>Abertura de CNPJ</span>
-                      <span>45%</span>
+                      <span>{Math.round(percentualAbertura)}%</span>
                     </div>
-                    <Progress value={45} className="h-2" />
+                    <Progress value={percentualAbertura} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs sm:text-sm">
                       <span>Alteração Contratual</span>
-                      <span>35%</span>
+                      <span>{Math.round(percentualAlteracao)}%</span>
                     </div>
-                    <Progress value={35} className="h-2" />
+                    <Progress value={percentualAlteracao} className="h-2" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs sm:text-sm">
                       <span>Fechamento de CNPJ</span>
-                      <span>20%</span>
+                      <span>{Math.round(percentualFechamento)}%</span>
                     </div>
-                    <Progress value={20} className="h-2" />
+                    <Progress value={percentualFechamento} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
