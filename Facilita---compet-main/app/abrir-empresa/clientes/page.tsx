@@ -50,21 +50,34 @@ export default function CriarClienteEtapa1() {
     setError("");
     setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const clienteData = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      phone: phone,
-    };
-
     try {
-      // Armazena no localStorage para a próxima etapa
-      localStorage.setItem("clienteTemp", JSON.stringify(clienteData));
+      const formData = new FormData(e.currentTarget);
 
-      // Redireciona para a etapa 2
+      const name = formData.get("name")?.toString().trim();
+      const email = formData.get("email")?.toString().trim();
+
+      if (!name || !email || !phone) {
+        setError("Preencha todos os campos obrigatórios.");
+        setIsLoading(false);
+        return;
+      }
+
+      const clienteData = {
+        name,
+        email,
+        phone,
+      };
+
+      // Salvar etapa 1 no localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("clienteTemp", JSON.stringify(clienteData));
+      }
+
+      // Ir para a etapa 2
       router.push("/abrir-empresa/dados-pessoais");
+
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao salvar etapa 1:", err);
       setError("Erro ao salvar os dados. Tente novamente.");
     } finally {
       setIsLoading(false);
@@ -91,6 +104,7 @@ export default function CriarClienteEtapa1() {
                 Cadastre as informações básicas do cliente
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               {error && (
                 <Alert className="mb-6" variant="destructive">
@@ -107,8 +121,10 @@ export default function CriarClienteEtapa1() {
                     Preencha os dados básicos do cliente
                   </CardDescription>
                 </CardHeader>
+
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
+
                     {/* Nome */}
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome *</Label>
@@ -154,9 +170,7 @@ export default function CriarClienteEtapa1() {
                           className="pl-10"
                           required
                           value={phone}
-                          onChange={(e) =>
-                            setPhone(formatPhone(e.target.value))
-                          }
+                          onChange={(e) => setPhone(formatPhone(e.target.value))}
                           maxLength={15}
                           inputMode="numeric"
                         />
@@ -174,6 +188,7 @@ export default function CriarClienteEtapa1() {
                           Cancelar
                         </Button>
                       </Link>
+
                       <Button
                         type="submit"
                         className="bg-blue-600 hover:bg-blue-700"

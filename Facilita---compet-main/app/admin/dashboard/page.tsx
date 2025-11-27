@@ -22,69 +22,27 @@ import {
   ExternalLink,
 } from "lucide-react"
 
-import { getTiposDeProcesso } from "@/lib/tiposdeprocesso"
-
-type TipoProcessoPercentual = {
-  tipo: string
-  quantidade: number
-  percentual: number
-}
-
-interface Stats {
-  totalClients: number
-  totalCNPJs: number
-  activeProcesses: number
-  completedThisMonth: number
-  pendingRequests: number
-}
-
-interface ProcessoFromAPI {
-  id_processo: number | string
-  id_cliente?: number | string
-  id_cnpj?: number | string
-  tipo?: string
-  status_link?: string
-  data_atualizacao?: string
-  created_at?: string
-}
-
-interface Cliente {
-  id_cliente: number | string
-  nome: string
-  email?: string
-}
-
-interface Empresa {
-  id_cnpj: number | string
-  nome: string
-  numero_cnpj?: string
-}
-
-interface RequestItem {
-  id: number | string
-  clientName: string
-  company: string
-  type: string
-  status: string
-  createdAt: string
-}
-
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({
+  const [stats, setStats] = useState({
     totalClients: 0,
     totalCNPJs: 0,
     activeProcesses: 0,
     completedThisMonth: 0,
     pendingRequests: 0,
+    totalAbertura: 0,
+    totalAlteracao: 0,
+    totalFechamento: 0
   })
 
-  const [recentRequests, setRecentRequests] = useState<RequestItem[]>([])
+  const totalProcessos = stats.totalAbertura + stats.totalAlteracao + stats.totalFechamento;
+
+  const percentualAbertura = totalProcessos ? (stats.totalAbertura / totalProcessos) * 100 : 0 
+  const percentualAlteracao = totalProcessos ? (stats.totalAlteracao / totalProcessos) * 100 : 0 
+  const percentualFechamento = totalProcessos ? (stats.totalFechamento / totalProcessos) * 100 : 0 
+
+  const [recentRequests, setRecentRequests] = useState<any[]>([])
   const [loadingRecent, setLoadingRecent] = useState<boolean>(true)
   const [loadingStats, setLoadingStats] = useState<boolean>(true)
-
-  // 👉 Tipos de Processo
-  const [tiposProcesso, setTiposProcesso] = useState<TipoProcessoPercentual[]>([])
-  const [loadingTiposProcesso, setLoadingTiposProcesso] = useState<boolean>(true)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,7 +58,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const getStatusIcon = (status: string): JSX.Element | null => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "Documentos Recebidos":
         return <CheckCircle className="w-4 h-4" />
@@ -114,7 +72,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // 📌 STATS
   useEffect(() => {
     const fetchStats = async () => {
       const token = localStorage.getItem("token")
@@ -134,8 +91,19 @@ export default function AdminDashboard() {
             activeProcesses: data.totalAtivos ?? 0,
             completedThisMonth: data.completedThisMonth ?? 0,
             pendingRequests: data.totalPendentes ?? 0,
+            totalAbertura: data.totalAberturaCnpj ?? 0,
+            totalAlteracao: data.totalAlteracaoCnpj ?? 0,
+            totalFechamento: data.totalFechamentoCnpj ?? 0
           })
+
+          console.log(`Total Ativos: ${data.totalAtivos},
+          Total Pendente: ${data.totalPendentesCnpj},
+          Total Abertura: ${data.totalAberturaCnpj},
+          Total Alteracao: ${data.totalAlteracaoCnpj},
+          Total Fechamento: ${data.totalFechamentoCnpj}`)
         }
+
+        
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error)
       } finally {
@@ -146,7 +114,6 @@ export default function AdminDashboard() {
     fetchStats()
   }, [])
 
-  // 📌 RECENT REQUESTS
   useEffect(() => {
     const fetchRecentRequests = async () => {
       const token = localStorage.getItem("token")
@@ -154,51 +121,45 @@ export default function AdminDashboard() {
 
       try {
         setLoadingRecent(true)
-
         const [processosResp, clientesResp, empresasResp] = await Promise.all([
-          axios.get<ProcessoFromAPI[]>("https://projeto-back-ten.vercel.app/processos", {
+          axios.get("https://projeto-back-ten.vercel.app/processos", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get<Cliente[]>("https://projeto-back-ten.vercel.app/clientes", {
+          axios.get("https://projeto-back-ten.vercel.app/clientes", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get<Empresa[]>("https://projeto-back-ten.vercel.app/totalcnpjs", {
+          axios.get("https://projeto-back-ten.vercel.app/totalcnpjs", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ])
 
-        const clientesMap = (clientesResp.data || []).reduce<Record<string, { name: string; email?: string }>>(
-          (acc, c) => {
-            acc[String(c.id_cliente)] = { name: c.nome, email: c.email }
-            return acc
-          },
-          {}
-        )
+        const clientesMap = (clientesResp.data || []).reduce((acc: any, c: any) => {
+          acc[c.id_cliente] = { name: c.nome, email: c.email }
+          return acc
+        }, {})
 
-        const empresasMap = (empresasResp.data || []).reduce<Record<string, { name: string; cnpj?: string }>>(
-          (acc, e) => {
-            acc[String(e.id_cnpj)] = { name: e.nome, cnpj: e.numero_cnpj }
-            return acc
-          },
-          {}
-        )
+        const empresasMap = (empresasResp.data || []).reduce((acc: any, e: any) => {
+          acc[e.id_cnpj] = { name: e.nome, cnpj: e.numero_cnpj }
+          return acc
+        }, {})
 
-        const formatted: RequestItem[] = (processosResp.data || []).map((p) => ({
+        const formatted = (processosResp.data || []).map((p: any) => ({
           id: p.id_processo,
-          clientName: clientesMap[String(p.id_cliente)]?.name || "Cliente não encontrado",
-          company: empresasMap[String(p.id_cnpj)]?.name || "Empresa não encontrada",
+          clientName: clientesMap[p.id_cliente]?.name || "Cliente não encontrado",
+          company: empresasMap[p.id_cnpj]?.name || "Empresa não encontrada",
           type: p.tipo || "Não informado",
           status: p.status_link || "Pendente",
           createdAt: p.data_atualizacao || p.created_at || new Date().toISOString(),
         }))
 
-        const sorted: RequestItem[] = formatted
+        const sorted = formatted
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 3)
 
         setRecentRequests(sorted)
       } catch (error) {
         console.error("Erro ao buscar solicitações recentes:", error)
+        setRecentRequests([])
       } finally {
         setLoadingRecent(false)
       }
@@ -207,43 +168,12 @@ export default function AdminDashboard() {
     fetchRecentRequests()
   }, [])
 
-  // 📌 TIPOS DE PROCESSO
-  useEffect(() => {
-    const loadTiposProcesso = async () => {
-      try {
-        setLoadingTiposProcesso(true)
-        const processos = (await getTiposDeProcesso()) as Array<Pick<ProcessoFromAPI, "tipo">>
-        const contador: Record<string, number> = {}
-
-        processos.forEach((p) => {
-          const tipo = p.tipo || "Não Informado"
-          contador[tipo] = (contador[tipo] || 0) + 1
-        })
-
-        const total = processos.length || 1
-
-        const estatisticas: TipoProcessoPercentual[] = Object.keys(contador).map((tipo) => ({
-          tipo,
-          quantidade: contador[tipo],
-          percentual: Math.round((contador[tipo] / total) * 100),
-        }))
-
-        setTiposProcesso(estatisticas)
-      } catch (error) {
-        console.error("Erro ao buscar tipos de processo:", error)
-        setTiposProcesso([])
-      } finally {
-        setLoadingTiposProcesso(false)
-      }
-    }
-
-    loadTiposProcesso()
-  }, [])
-
   const pendingCount =
     stats.pendingRequests ??
     recentRequests.filter((r) => r.status === "Pendente" || r.status === "Aguardando Link").length
 
+
+    
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
@@ -251,12 +181,14 @@ export default function AdminDashboard() {
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Administrativo</h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">
+              <h1 className="flex items-center text-2xl sm:text-3xl font-bold text-gray-900">
+                  <TrendingUp className="w-8 h-8 mr-2 text-blue-600" />
+                  Dashboard Administrativo
+                </h1>
+              <p>
                 Visão geral do sistema e métricas principais
               </p>
             </div>
-
             {pendingCount > 0 && (
               <Link href="/admin/requests">
                 <Button className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
@@ -269,7 +201,6 @@ export default function AdminDashboard() {
 
           {/* Cards de Estatísticas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total Clientes */}
             <Link href="/admin/clients">
               <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -285,7 +216,6 @@ export default function AdminDashboard() {
               </Card>
             </Link>
 
-            {/* CNPJs */}
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CNPJs Gerenciados</CardTitle>
@@ -299,7 +229,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Ativos */}
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Processos Ativos</CardTitle>
@@ -313,7 +242,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Pendentes */}
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Solicitações Pendentes</CardTitle>
@@ -328,9 +256,9 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Solicitações Recentes + Quick Stats */}
+          {/* Solicitações Recentes + Resumo */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Recentes */}
+            {/* Solicitações Recentes */}
             <div className="lg:col-span-2">
               <Card className="border-0 shadow-lg">
                 <CardHeader>
@@ -353,7 +281,7 @@ export default function AdminDashboard() {
                     {loadingRecent ? (
                       <p className="text-gray-500 text-sm">Carregando solicitações...</p>
                     ) : recentRequests.length === 0 ? (
-                      <p className="text-gray-500 text-sm">Nenhuma solicitação encontrada.</p>
+                      <p className="text-gray-500 text-sm">Nenhuma solicitação recente encontrada.</p>
                     ) : (
                       recentRequests.map((request) => (
                         <div
@@ -420,29 +348,32 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* TIPOS DE PROCESSO (DINÂMICO) */}
               <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle>Tipos de Processo</CardTitle>
                 </CardHeader>
-
                 <CardContent className="space-y-4 text-sm sm:text-base">
-                  {loadingTiposProcesso && <p className="text-gray-500">Carregando...</p>}
-
-                  {!loadingTiposProcesso && tiposProcesso.length === 0 && (
-                    <p className="text-gray-500">Nenhum dado disponível.</p>
-                  )}
-
-                  {!loadingTiposProcesso &&
-                    tiposProcesso.map((item) => (
-                      <div key={item.tipo} className="space-y-2">
-                        <div className="flex justify-between text-xs sm:text-sm">
-                          <span>{item.tipo}</span>
-                          <span>{item.percentual}%</span>
-                        </div>
-                        <Progress value={item.percentual} className="h-2" />
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs sm:text-sm">
+                      <span>Abertura de CNPJ</span>
+                      <span>{Math.round(percentualAbertura)}%</span>
+                    </div>
+                    <Progress value={percentualAbertura} className="h-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs sm:text-sm">
+                      <span>Alteração Contratual</span>
+                      <span>{Math.round(percentualAlteracao)}%</span>
+                    </div>
+                    <Progress value={percentualAlteracao} className="h-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs sm:text-sm">
+                      <span>Fechamento de CNPJ</span>
+                      <span>{Math.round(percentualFechamento)}%</span>
+                    </div>
+                    <Progress value={percentualFechamento} className="h-2" />
+                  </div>
                 </CardContent>
               </Card>
             </div>

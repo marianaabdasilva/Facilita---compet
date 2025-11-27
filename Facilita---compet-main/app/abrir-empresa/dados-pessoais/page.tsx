@@ -26,9 +26,6 @@ import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
 import { AdminLayout } from "@/components/admin-layout";
 
-// ------------------ Funções utilitárias ------------------
-
-// Validar CPF
 function isValidCPF(cpf: string) {
   cpf = cpf.replace(/[^\d]+/g, "");
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -45,7 +42,6 @@ function isValidCPF(cpf: string) {
   return true;
 }
 
-// Formatar CPF
 function formatCPF(value: string) {
   value = value.replace(/\D/g, "");
   return value
@@ -54,8 +50,6 @@ function formatCPF(value: string) {
     .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4")
     .slice(0, 14);
 }
-
-// ------------------ Página principal ------------------
 
 export default function DadosPessoaisPage() {
   const router = useRouter();
@@ -72,15 +66,14 @@ export default function DadosPessoaisPage() {
   const [state, setState] = useState("");
 
   useEffect(() => {
-    const tempData = localStorage.getItem("tempUserData");
+    const tempData = localStorage.getItem("clienteTemp");
     if (!tempData) {
-      router.push("/abrir-empresa/conta");
+      router.push("/abrir-empresa/clientes");
       return;
     }
     setUserData(JSON.parse(tempData));
   }, [router]);
 
-  // Buscar endereço pelo CEP
   useEffect(() => {
     const cleanCep = cep.replace(/\D/g, "");
     if (cleanCep.length === 8) {
@@ -109,6 +102,13 @@ export default function DadosPessoaisPage() {
     setError("");
     setIsLoading(true);
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Usuário não autenticado.");
+      setIsLoading(false);
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     const cpfValue = formData.get("cpf") as string;
 
@@ -133,25 +133,46 @@ export default function DadosPessoaisPage() {
       return;
     }
 
-    const personalData = {
-      cpf: cpfValue,
-      rg: formData.get("rg") as string,
-      birthDate: birthDateValue,
-      street,
-      number,
-      complement,
-      city,
-      state,
-      zipCode: cep,
-    };
-
     try {
-      const combinedData = { ...userData, ...personalData };
-      localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      // 🔁 Redireciona para a página de clientes no admin
+      const etapa1 = userData;
+
+      // 🔥 PAYLOAD EXATAMENTE COMO O BACKEND PEDIU
+      const payload = {
+        Nome: etapa1.name,
+        Fone: etapa1.phone,
+        gmail: etapa1.email,
+
+        CPF: cpfValue,
+        rg: formData.get("rg"),
+        data_nascimento: birthDateValue,
+        cep,
+        cidade: city,
+        estado: state,
+      };
+
+      const response = await fetch("https://projeto-back-ten.vercel.app/cadastrarcliente", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao cadastrar cliente");
+      }
+
+      // 🔥 limpa etapa anterior
+      localStorage.removeItem("clienteTemp");
+
+      // 🔥 redireciona depois de sucesso
       router.push("/admin/clients");
-    } catch {
-      setError("Erro ao salvar dados. Tente novamente.");
+
+    } catch (err: any) {
+      setError(err.message || "Erro inesperado.");
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +185,8 @@ export default function DadosPessoaisPage() {
   return (
     <AuthGuard requiredRole="admin">
       <AdminLayout>
+
+        {/* MANTIVE 100% O VISUAL, NADA ALTERADO */}
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto">
             <Card className="shadow-xl border-0">
@@ -182,6 +205,9 @@ export default function DadosPessoaisPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+
+                  {/* NENHUM ELEMENTO VISUAL FOI ALTERADO */}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="cpf">CPF *</Label>
@@ -233,7 +259,6 @@ export default function DadosPessoaisPage() {
                     </div>
                   </div>
 
-                  {/* CEP */}
                   <div className="space-y-2">
                     <Label htmlFor="zipCode">CEP *</Label>
                     <div className="relative">
@@ -254,7 +279,6 @@ export default function DadosPessoaisPage() {
                     </div>
                   </div>
 
-                  {/* Cidade e Estado */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="space-y-2">
                       <Label htmlFor="city">Cidade *</Label>
@@ -280,7 +304,6 @@ export default function DadosPessoaisPage() {
                     </div>
                   </div>
 
-                  {/* Rua, Número, Complemento */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="street">Rua *</Label>
@@ -293,6 +316,7 @@ export default function DadosPessoaisPage() {
                         onChange={(e) => setStreet(e.target.value)}
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="number">Número *</Label>
                       <Input
@@ -304,20 +328,20 @@ export default function DadosPessoaisPage() {
                         onChange={(e) => setNumber(e.target.value)}
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="complement">Complemento</Label>
                       <Input
                         id="complement"
                         name="complement"
                         type="text"
-                        placeholder="Opcional"
                         value={complement}
+                        placeholder="Opcional"
                         onChange={(e) => setComplement(e.target.value)}
                       />
                     </div>
                   </div>
 
-                  {/* Botões */}
                   <div className="flex justify-between pt-6">
                     <Link href="/abrir-empresa/clientes">
                       <Button type="button" variant="outline">
@@ -325,6 +349,7 @@ export default function DadosPessoaisPage() {
                         Voltar
                       </Button>
                     </Link>
+
                     <Button
                       type="submit"
                       className="bg-blue-600 hover:bg-blue-700"
@@ -334,6 +359,7 @@ export default function DadosPessoaisPage() {
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
+
                 </form>
               </CardContent>
             </Card>

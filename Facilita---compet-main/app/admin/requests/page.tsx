@@ -144,15 +144,17 @@ export default function RequestsPage() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold flex items-center">
-                Solicitações de Processos
-                {pendingCount > 0 && (
-                  <Badge className="ml-3 bg-red-100 text-red-700">
-                    <Bell className="w-3 h-3 mr-1" />
-                    {pendingCount} pendente(s)
-                  </Badge>
-                )}
-              </h1>
+             <h1 className="text-3xl font-bold flex items-center">
+              <Bell className="h-8 w-8 mr-4 text-blue-600 mr-2" />
+              Solicitações de Processos
+              {pendingCount > 0 && (
+                <Badge className="ml-3 bg-red-100 text-red-700 flex items-center">
+                  <Bell className="w-3 h-3 mr-1" />
+                  {pendingCount} pendente(s)
+                </Badge>
+              )}
+            </h1>
+
               <p className="text-gray-600 mt-1">Gerencie solicitações dos clientes</p>
             </div>
 

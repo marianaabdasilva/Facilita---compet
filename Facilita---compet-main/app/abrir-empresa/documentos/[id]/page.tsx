@@ -34,7 +34,6 @@ export default function DocumentosPageDinamic() {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        // ❗❗❗ TROCAR QUANDO SOUBER A ROTA FINAL
         const res = await fetch(
           `https://projeto-back-ten.vercel.app/processos/${id}`
         );
@@ -43,8 +42,12 @@ export default function DocumentosPageDinamic() {
 
         const data = await res.json();
 
-        // API deve retornar: { documentos_requeridos: ["RG", "CPF", ...] }
-        setRequiredDocuments(data.documentos_requeridos);
+        // Ordenação alfabética 🔥🔥🔥
+        const orderedDocs = data.documentos_requeridos.sort((a: string, b: string) =>
+          a.localeCompare(b)
+        );
+
+        setRequiredDocuments(orderedDocs);
       } catch (err) {
         console.error(err);
         setError("Erro ao carregar os documentos necessários.");
@@ -110,8 +113,6 @@ export default function DocumentosPageDinamic() {
         }
       });
 
-      // await fetch("/api/upload", { method: "POST", body: formData });
-
       router.push("/abrir-empresa/concluido");
     } catch (err) {
       console.error(err);
@@ -121,7 +122,6 @@ export default function DocumentosPageDinamic() {
     }
   };
 
-  // ⏳ Tela carregando
   if (loadingDocs) {
     return (
       <div className="h-screen flex items-center justify-center text-xl">
@@ -200,13 +200,12 @@ export default function DocumentosPageDinamic() {
                       </div>
                     </div>
 
-                    {/* Pré-visualização */}
                     {uploadedFiles[document] && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-green-600 flex items-center text-sm">
                             <CheckCircle className="w-5 h-5 mr-1" />
-                            Arquivo carregado
+                            Arquivo carregado ({uploadedFiles[document]!.file.name})
                           </span>
 
                           <button
@@ -279,3 +278,4 @@ export default function DocumentosPageDinamic() {
     </div>
   );
 }
+
