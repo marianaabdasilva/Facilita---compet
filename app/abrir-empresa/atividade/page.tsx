@@ -167,7 +167,7 @@ export default function AtividadePage() {
 
     // 1️⃣ Cadastrar CNPJ
     const { data: cnpjData } = await axios.post(
-      "http://localhost:4000/cadastrarcnpj",
+      "https://projeto-back-ten.vercel.app/cadastrarcnpj",
       { nome: fantasyName, numero_cnpj: numeroCNPJ },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -175,7 +175,7 @@ export default function AtividadePage() {
 
     // 2️⃣ Associar CNPJ ao cliente
     await axios.post(
-      `http://localhost:4000/adicionarcnpjcliente/${selectedClient.id_cliente}`,
+      `https://projeto-back-ten.vercel.app/adicionarcnpjcliente/${selectedClient.id_cliente}`,
       { cnpj_id },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -183,7 +183,7 @@ export default function AtividadePage() {
     // 3️⃣ Associar CNAEs
     for (const cnae of selectedCnaes) {
       await axios.post(
-        "http://localhost:4000/cnaes_cliente",
+        "https://projeto-back-ten.vercel.app/cnaes_cliente",
         { cnpj_id, cnae_id: cnae.id_cnae },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -191,7 +191,7 @@ export default function AtividadePage() {
 
     // 4️⃣ Criar endereço vazio
     const { data: enderecoData } = await axios.post(
-      "http://localhost:4000/adicionar_endereco_vazio",
+      "https://projeto-back-ten.vercel.app/adicionar_endereco_vazio",
       { id_cnpj: cnpj_id, id_cliente: selectedClient.id_cliente },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -200,14 +200,14 @@ export default function AtividadePage() {
     // 5️⃣ Se não usar endereço diferente, atualizar com dados do cliente
     if (!useDifferentAddress) {
       await axios.put(
-        "http://localhost:4000/atualizar-endereco-cliente",
+        "https://projeto-back-ten.vercel.app/atualizar-endereco-cliente",
         { id_endereco, id_cliente: selectedClient.id_cliente },
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } else {
       // 6️⃣ Se usar endereço diferente, atualizar com os dados do formulário
       await axios.put(
-        "http://localhost:4000/atualizar-endereco-cliente",
+        "https://projeto-back-ten.vercel.app/atualizar-endereco-cliente",
         {
           id_endereco,
           id_cliente: selectedClient.id_cliente,
