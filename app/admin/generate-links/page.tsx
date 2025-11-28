@@ -281,7 +281,7 @@ export default function GenerateLinksPage() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000/processo",
+      "https://projeto-back-ten.vercel.app//processo",
       requestData,
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
