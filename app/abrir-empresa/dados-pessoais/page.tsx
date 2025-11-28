@@ -199,7 +199,7 @@ export default function DadosPessoaisPage() {
       if (!token) throw new Error("Usúario não encontrado!");
 
       
-      const response = await fetch("http://localhost:4000/cadastrarcliente", {
+      const response = await fetch("https://facilita-compet.vercel.app/cadastrarcliente", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
