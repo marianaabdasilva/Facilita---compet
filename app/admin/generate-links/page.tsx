@@ -281,7 +281,7 @@ export default function GenerateLinksPage() {
     };
 
     const response = await axios.post(
-      "https://projeto-back-ten.vercel.app//processo",
+      "https://projeto-back-ten.vercel.app/processo",
       requestData,
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
