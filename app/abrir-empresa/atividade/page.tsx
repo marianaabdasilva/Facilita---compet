@@ -200,6 +200,7 @@ export default function AtividadePage() {
     // 5️⃣ Se não usar endereço diferente, atualizar com dados do cliente
     if (!useDifferentAddress) {
       await axios.put(
+
         "https://projeto-back-ten.vercel.app/atualizar-endereco-cliente",
         { id_endereco, id_cliente: selectedClient.id_cliente },
         { headers: { Authorization: `Bearer ${token}` } }
