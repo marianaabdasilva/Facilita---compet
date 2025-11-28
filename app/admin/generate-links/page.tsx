@@ -281,7 +281,7 @@ export default function GenerateLinksPage() {
     };
 
     const response = await axios.post(
-      "https://projeto-back-ten.vercel.app/processo",
+      "http://localhost:4000/processo",
       requestData,
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
@@ -305,6 +305,20 @@ export default function GenerateLinksPage() {
     try {
       // Código para gerar o link
       setGeneratedLink(newLink.link);
+
+      localStorage.setItem(
+        `docs_processo_${newLink.id}`, 
+        JSON.stringify(selectedDocuments)
+);
+      localStorage.setItem(
+  `docs_processo_nomes_${newLink.id}`,
+  JSON.stringify(nomesSelecionados)
+);
+
+    localStorage.setItem("documentos_ids", JSON.stringify(selectedDocuments));
+    localStorage.setItem("documentos_nomes", JSON.stringify(nomesSelecionados));
+
+
     } catch (error) {
       console.error("Erro ao gerar o link:", error);
       setError("Não foi possível gerar o link. Tente novamente.");
@@ -367,15 +381,15 @@ export default function GenerateLinksPage() {
 
   // helper para extrair rótulo do item retornado pelo backend
   const docLabel = (doc: any) => {
-    if (typeof doc === "string") return doc;
-    if (doc === null || doc === undefined) return String(doc);
-    return doc.nome || doc.name || doc.tipo || doc.label || String(doc);
-  };
-
-  // helper para extrair valor único (id ou nome) para checkbox
-  const docValue = (doc: any, idx: number) => {
-  return String(doc.id_tipo_documento ?? doc.id ?? idx);
+    if (!doc) return "Documento";
+    return doc.nome ?? doc.label ?? "Documento";
 };
+
+// helper para extrair o ID corretamente
+  const docValue = (doc: any, idx: number) => {
+  return `doc-${doc.id_tipo_documento ?? doc.id ?? `idx-${idx}`}`;
+};
+
 
 
   return (
@@ -447,23 +461,22 @@ export default function GenerateLinksPage() {
                       ) : (
                         <div className="grid grid-cols-1 gap-2 py-2">
                           {docsFromBackend.map((doc, idx) => {
-                            const label = docLabel(doc);
-                            const value = docValue(doc, idx);
-                            // o selectedDocuments armazena values (strings)
-                            const checked = selectedDocuments.includes(value);
+                            const id = String(doc.id_tipo_documento ?? doc.id ?? idx);
+                            const nome = doc.nome ?? doc;
+
                             return (
                               <label
-                                key={`${value}`}
-                                className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50"
+                                key={id}
+                                className="flex items-center space-x-3 rounded-md p-2 hover:bg-gray-50 cursor-pointer"
                               >
                                 <input
                                   type="checkbox"
+                                  checked={selectedDocuments.includes(id)}
+                                  onChange={() => toggleDocument(id)}
                                   className="h-4 w-4"
-                                  checked={checked}
-                                  onChange={() => toggleDocument(value)}
-                                  value={value}
                                 />
-                                <span className="text-sm">{label}</span>
+
+                                <span className="text-sm">{nome}</span>
                               </label>
                             );
                           })}
@@ -549,48 +562,52 @@ export default function GenerateLinksPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredLinks.map((link) => (
-                            <TableRow key={link.id}>
-                              <TableCell>{link.clientName}</TableCell>
-                              <TableCell>{link.companyName}</TableCell>
-                              <TableCell>{link.processType}</TableCell>
-                              <TableCell>
-                                <Badge className={getStatusColor(link.status)}>{link.status}</Badge>
-                              </TableCell>
+                          {filteredLinks.map((link) => {
+                      return (
+                        <TableRow key={link.id}>
+                          <TableCell>{link.clientName}</TableCell>
+                          <TableCell>{link.companyName}</TableCell>
+                          <TableCell>{link.processType}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(link.status)}>{link.status}</Badge>
+                          </TableCell>
 
-                              <TableCell>
-                                {link.documentos && link.documentos.length > 0 ? (
-                                  <div className="flex flex-wrap gap-1">
-                                    {link.documentos.map((d, i) => (
-                                      <Badge
-                                        key={i}
-                                        className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
-                                      >
-                                        {d} {/* Aqui você já está exibindo o nome do documento */}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-500 text-xs">—</span>
-                                )}
-                              </TableCell>
+                          <TableCell>
+                            {link.documentos && link.documentos.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {link.documentos.map((docName, idx) => (
+                                  <Badge
+                                    key={`doc-${link.id}-${docName}`}
+                                    className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+                                  >
+                                    {docName}
+                                  </Badge>
 
-                              <TableCell>{new Date(link.createdAt).toLocaleDateString("pt-BR")}</TableCell>
-                              <TableCell>
-                                {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString("pt-BR") : ""}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center space-x-2">
-                                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
-                                    <Copy className="w-3 h-3" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="text-red-600">
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-500 text-xs">—</span>
+                            )}
+                          </TableCell>
+
+                          <TableCell>{new Date(link.createdAt).toLocaleDateString("pt-BR")}</TableCell>
+                          <TableCell>
+                            {link.expiresAt ? new Date(link.expiresAt).toLocaleDateString("pt-BR") : ""}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button size="sm" variant="ghost" onClick={() => copyToClipboard(link.link)}>
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-red-600">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+
                           {filteredLinks.length === 0 && (
                             <TableRow>
                               <TableCell colSpan={8} className="text-center text-gray-500 py-6">

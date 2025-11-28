@@ -31,33 +31,75 @@ export default function DocumentosPageDinamic() {
   );
 
   // 🚨 1) Buscar documentos do backend usando o ID do link
+// useEffect que pega os documentos salvos no localStorage
+  // 1) Buscar documentos usando os IDs salvos no localStorage
   useEffect(() => {
+    const savedDocIds = localStorage.getItem("documentos_ids");
+
+    if (!savedDocIds) {
+      setError("Nenhum documento selecionado foi encontrado.");
+      setLoadingDocs(false);
+      return;
+    }
+
+    const ids: string[] = JSON.parse(savedDocIds);
+
     const fetchDocs = async () => {
+      setLoadingDocs(true);
       try {
-        const res = await fetch(
-          `https://projeto-back-ten.vercel.app/processos/${id}`
-        );
+        const token = localStorage.getItem("token");
 
-        if (!res.ok) throw new Error("Erro ao carregar documentos");
+        // Envia o array de IDs para a rota de documentos solicitados
+        const resp = await fetch("https://projeto-back-ten.vercel.app/documentos_solicitados", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ids }),
+        });
 
-        const data = await res.json();
+        const data = await resp.json();
 
-        // Ordenação alfabética 🔥🔥🔥
-        const orderedDocs = data.documentos_requeridos.sort((a: string, b: string) =>
-          a.localeCompare(b)
-        );
+        const docs: string[] = Array.isArray(data)
+          ? data.map((doc) => doc.nome ?? doc)
+          : [];
 
-        setRequiredDocuments(orderedDocs);
+        setRequiredDocuments(docs);
       } catch (err) {
         console.error(err);
-        setError("Erro ao carregar os documentos necessários.");
+        setError("Erro ao carregar documentos solicitados.");
       } finally {
         setLoadingDocs(false);
       }
     };
 
     fetchDocs();
-  }, [id]);
+  }, []);
+
+
+  useEffect(() => {
+  if (!id || requiredDocuments.length === 0) return;
+
+  const savedDocIds = localStorage.getItem(`docs_processo_${id}`);
+  const savedDocNames = localStorage.getItem(`docs_processo_nomes_${id}`);
+
+  if (savedDocIds && savedDocNames) {    const ids: string[] = JSON.parse(savedDocIds);
+    const names: string[] = JSON.parse(savedDocNames);
+
+    const initialFiles: Record<string, Uploaded> = {};
+    requiredDocuments.forEach((doc) => {
+      const idx = names.indexOf(doc);
+      if (idx >= 0) {
+        initialFiles[doc] = { file: new File([], names[idx]), preview: "" };
+      }
+    });
+
+    setUploadedFiles(initialFiles);
+  }
+}, [id, requiredDocuments]);
+
+
 
   // 🚨 2) Upload
   const handleFileChange = (document: string, file: File | null) => {
@@ -89,38 +131,59 @@ export default function DocumentosPageDinamic() {
   };
 
   // 🚨 4) Envio
-  const handleSubmit = async () => {
-    setError("");
-    setIsLoading(true);
+const handleSubmit = async () => {
+  setError("");
+  setIsLoading(true);
 
-    const allUploaded = requiredDocuments.every(
-      (doc) => Boolean(uploadedFiles[doc]?.file)
+  const allUploaded = requiredDocuments.every(
+    (doc) => Boolean(uploadedFiles[doc]?.file)
+  );
+
+  if (!allUploaded) {
+    setError("Por favor, envie todos os documentos obrigatórios.");
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+
+    // Para cada arquivo, adiciona ao FormData com campo 'arquivo'
+    requiredDocuments.forEach((doc) => {
+      const item = uploadedFiles[doc];
+      if (item?.file) {
+        formData.append("arquivo", item.file, item.file.name);
+      }
+    });
+
+    // Adiciona o geracao_link_id se necessário pelo backend
+    formData.append("geracao_link_id", id);
+
+    const token = localStorage.getItem("token");
+
+    const resp = await fetch(
+      `https://projeto-back-ten.vercel.app/uploadarquivo/${id}`, // aqui vai o cliente_id
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
     );
 
-    if (!allUploaded) {
-      setError("Por favor, envie todos os documentos obrigatórios.");
-      setIsLoading(false);
-      return;
-    }
+    if (!resp.ok) throw new Error("Erro ao enviar documentos");
 
-    try {
-      const formData = new FormData();
+    router.push("/abrir-empresa/concluido");
+  } catch (err) {
+    console.error(err);
+    setError("Erro ao enviar documentos.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-      requiredDocuments.forEach((doc) => {
-        const item = uploadedFiles[doc];
-        if (item?.file) {
-          formData.append("documents", item.file, doc);
-        }
-      });
 
-      router.push("/abrir-empresa/concluido");
-    } catch (err) {
-      console.error(err);
-      setError("Erro ao enviar documentos.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (loadingDocs) {
     return (
