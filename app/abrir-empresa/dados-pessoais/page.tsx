@@ -146,9 +146,75 @@ export default function DadosPessoaisPage() {
     };
 
     try {
-      const combinedData = { ...userData, ...personalData };
-      localStorage.setItem("tempUserData", JSON.stringify(combinedData));
-      // 🔁 Redireciona para a página de clientes no admin
+
+      const clienteTemp = JSON.parse(localStorage.getItem("clienteTemp") || "{}");
+
+      const rg = formData.get("rg") as string;
+
+      const personalData = { cpf, birthDate, street, number, city, state, zipCode: cep };
+
+
+      // função para decodificar JWT
+  function parseJwt(token: string) {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  const token = localStorage.getItem("token");
+  let usuario_id = null;
+
+  if (token) {
+    const payload = parseJwt(token);
+    usuario_id = payload?.id;
+  }
+
+
+  const combinedData = {
+    Nome: clienteTemp.name,
+    Fone: clienteTemp.phone,
+    CPF: cpf,
+    data_nascimento: birthDate,
+    cep,
+    cidade: city,
+    estado: state,
+    rg,
+    gmail: clienteTemp.email,
+    numero_casa: number,
+    endereco: street + (complement ? ", " + complement : ""),
+    usuario_id,
+  };
+
+        
+      if (!token) throw new Error("Usúario não encontrado!");
+
+      
+      const response = await fetch("http://localhost:4000/cadastrarcliente", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(combinedData),
+      });
+
+      if (!response.ok) {
+
+        const errorData = await response.json();
+
+        throw new Error(errorData.error || "Erro ao cadastrar cliente");
+}
+
       router.push("/admin/clients");
     } catch {
       setError("Erro ao salvar dados. Tente novamente.");

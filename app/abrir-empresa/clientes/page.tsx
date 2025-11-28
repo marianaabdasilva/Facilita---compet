@@ -76,7 +76,7 @@ export default function CriarClienteEtapa1() {
       <AdminLayout>
         <div className="max-w-2xl mx-auto space-y-8">
           {/* Botão Voltar */}
-          <Link href="/admin/clients">
+          <Link href="/admin/clients">  
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar para Clientes

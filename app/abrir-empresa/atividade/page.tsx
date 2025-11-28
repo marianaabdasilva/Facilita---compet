@@ -54,7 +54,7 @@ export default function AtividadePage() {
   const [useDifferentAddress, setUseDifferentAddress] = useState(false);
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
-  const [number, setNumber] = useState("");
+  const [streetNumber, setStreetNumber] = useState("");
   const [complement, setComplement] = useState("");
   const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
@@ -134,90 +134,106 @@ export default function AtividadePage() {
     }
   }, [cep, useDifferentAddress]);
 
-  // Cria um CNPJ fictício (simulando retorno da API)
-  const createFakeCnpj = () => {
-    // Gera um CNPJ aleatório
-    const fakeCnpjNumber = Math.floor(Math.random() * 90000000000000 + 10000000000000)
-      .toString()
-      .padStart(14, "0");
-
-    // Simula um objeto retornado pela API
-    return {
-      id_cnpj: Math.floor(Math.random() * 10000),
-      numero: fakeCnpjNumber,
-      criadoEm: new Date().toISOString(),
-    };
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  e.preventDefault();
+  setError("");
+  setIsLoading(true);
 
-    if (!selectedClient) {
-      setError("Por favor, selecione um cliente.");
+  if (!selectedClient) {
+    setError("Por favor, selecione um cliente.");
+    setIsLoading(false);
+    return;
+  }
+
+  if (selectedCnaes.length === 0) {
+    setError("Por favor, selecione pelo menos uma atividade (CNAE).");
+    setIsLoading(false);
+    return;
+  }
+
+  if (useDifferentAddress) {
+    if (!cep || !street || !streetNumber || !district || !city || !stateUf) {
+      setError("Preencha todos os campos de endereço da empresa.");
       setIsLoading(false);
       return;
     }
+  }
 
-    if (selectedCnaes.length === 0) {
-      setError("Por favor, selecione pelo menos uma atividade (CNAE).");
-      setIsLoading(false);
-      return;
-    }
+  try {
+    const formData = new FormData(e.currentTarget);
+    const fantasyName = formData.get("fantasyName") as string;
+    const numeroCNPJ = formData.get("CNPJ") as string;
+    const token = localStorage.getItem("token");
 
-    if (useDifferentAddress) {
-      if (!cep || !street || !number || !district || !city || !stateUf) {
-        setError("Preencha todos os campos de endereço da empresa.");
-        setIsLoading(false);
-        return;
-      }
-    }
+    // 1️⃣ Cadastrar CNPJ
+    const { data: cnpjData } = await axios.post(
+      "http://localhost:4000/cadastrarcnpj",
+      { nome: fantasyName, numero_cnpj: numeroCNPJ },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const cnpj_id = cnpjData.id;
 
-    try {
-      // 🔹 Cria CNPJ fictício
-      const fakeCnpj = createFakeCnpj();
+    // 2️⃣ Associar CNPJ ao cliente
+    await axios.post(
+      `http://localhost:4000/adicionarcnpjcliente/${selectedClient.id_cliente}`,
+      { cnpj_id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      // 🔹 Associa o CNPJ ao cliente
-      const token = localStorage.getItem("token");
+    // 3️⃣ Associar CNAEs
+    for (const cnae of selectedCnaes) {
       await axios.post(
-        `https://projeto-back-ten.vercel.app/adicionarcnpjcliente/${selectedClient.id_cliente}`,
-        { cnpj_id: fakeCnpj.id_cnpj },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        "http://localhost:4000/cnaes_cliente",
+        { cnpj_id, cnae_id: cnae.id_cnae },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // 🔹 Salva os dados localmente
-      const formData = new FormData(e.currentTarget);
-      const activityData = {
-        cliente: selectedClient,
-        cnaes: selectedCnaes.map((c) => ({
-          id_cnae: c.id_cnae,
-          numero: c.value,
-          nome: c.label,
-        })),
-        cnpj: fakeCnpj,
-        fantasyName: formData.get("fantasyName") as string,
-        description: formData.get("description") as string,
-        enderecoEmpresa: useDifferentAddress
-          ? { cep, street, number, complement, district, city, state: stateUf }
-          : null,
-      };
-
-      localStorage.setItem("tempUserData", JSON.stringify(activityData));
-
-      setIsSuccess(true);
-      setTimeout(() => router.push("/admin/generate-links"), 2000);
-    } catch (err) {
-      console.error(err);
-      setError("Erro ao criar ou associar o CNPJ fictício.");
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    // 4️⃣ Criar endereço vazio
+    const { data: enderecoData } = await axios.post(
+      "http://localhost:4000/adicionar_endereco_vazio",
+      { id_cnpj: cnpj_id, id_cliente: selectedClient.id_cliente },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const id_endereco = enderecoData.id_endereco;
+
+    // 5️⃣ Se não usar endereço diferente, atualizar com dados do cliente
+    if (!useDifferentAddress) {
+      await axios.put(
+        "http://localhost:4000/atualizar-endereco-cliente",
+        { id_endereco, id_cliente: selectedClient.id_cliente },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } else {
+      // 6️⃣ Se usar endereço diferente, atualizar com os dados do formulário
+      await axios.put(
+        "http://localhost:4000/atualizar-endereco-cliente",
+        {
+          id_endereco,
+          id_cliente: selectedClient.id_cliente,
+          cep,
+          rua: street,
+          numero: streetNumber,
+          complemento: complement,
+          bairro: district,
+          cidade: city,
+          estado: stateUf,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    }
+
+    setIsSuccess(true);
+    setTimeout(() => router.push("/admin/generate-links"), 2000);
+  } catch (err) {
+    console.error(err);
+    setError("Erro ao criar ou associar o CNPJ.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
   const filteredCnaes = allCnaes.filter((opt) => {
     const lower = opt.label.toLowerCase();
@@ -389,8 +405,8 @@ export default function AtividadePage() {
                             id="number"
                             type="text"
                             placeholder="Número"
-                            value={number}
-                            onChange={(e) => setNumber(e.target.value)}
+                            value={streetNumber}
+                            onChange={(e) => setStreetNumber(e.target.value)}
                           />
                         </div>
                       </div>
